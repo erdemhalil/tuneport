@@ -192,15 +192,15 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
             </div>
           </div>
 
-          <div className="max-h-[600px] space-y-3 overflow-y-auto pr-2">
+          <div className="max-h-[600px] space-y-4 overflow-y-auto pr-3 pl-2 py-2">
             {tracks.map((track) => (
               <div
                 key={track.id}
                 className={`group glass flex cursor-pointer items-center space-x-4 rounded-2xl p-4 transition-all duration-200 hover:shadow-md ${
                   currentTrackId === track.id
-                    ? "bg-blue-50/50 ring-2 ring-blue-200"
+                    ? "bg-blue-50/50 ring-2 ring-blue-200 ring-offset-2"
                     : "hover:bg-neutral-50/50"
-                } ${selectedTracks[track.id] ? "bg-emerald-50/30 ring-2 ring-emerald-200" : ""}`}
+                } ${selectedTracks[track.id] ? "bg-emerald-50/30 ring-2 ring-emerald-200 ring-offset-2" : ""}`}
                 onClick={() => handleTrackSelect(track.id)}
               >
                 <div className="relative flex-shrink-0">

@@ -49,7 +49,8 @@ export const authConfig: NextAuthOptions = {
       authorization: {
         url: "https://accounts.spotify.com/authorize",
         params: {
-          scope: "user-library-read playlist-read-private user-read-email user-read-private",
+          scope:
+            "user-library-read playlist-read-private user-read-email user-read-private",
           response_type: "code",
         },
       },
@@ -92,27 +93,30 @@ export const authConfig: NextAuthOptions = {
       const expiresAt = token.expiresAt as number | undefined;
       if (expiresAt && Date.now() >= expiresAt) {
         try {
-          const response = await fetch('https://accounts.spotify.com/api/token', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
+          const response = await fetch(
+            "https://accounts.spotify.com/api/token",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: new URLSearchParams({
+                grant_type: "refresh_token",
+                refresh_token: token.refreshToken as string,
+                client_id: process.env.SPOTIFY_CLIENT_ID!,
+                client_secret: process.env.SPOTIFY_CLIENT_SECRET!,
+              }),
             },
-            body: new URLSearchParams({
-              grant_type: 'refresh_token',
-              refresh_token: token.refreshToken as string,
-              client_id: process.env.SPOTIFY_CLIENT_ID!,
-              client_secret: process.env.SPOTIFY_CLIENT_SECRET!,
-            }),
-          });
+          );
 
           if (response.ok) {
             const data = await response.json();
             token.accessToken = data.access_token;
-            token.expiresAt = Date.now() + (data.expires_in * 1000);
+            token.expiresAt = Date.now() + data.expires_in * 1000;
             // Spotify refresh tokens can be reused, so we keep the same refresh token
           }
         } catch (error) {
-          console.error('Token refresh failed:', error);
+          console.error("Token refresh failed:", error);
           // Token refresh failed, user will need to re-authenticate
         }
       }

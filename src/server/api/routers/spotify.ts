@@ -1,20 +1,19 @@
 import { z } from "zod";
 
-import {
-  createTRPCRouter,
-  protectedProcedure,
-} from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 // Helper function to refresh Spotify access token
-async function refreshSpotifyToken(refreshToken: string): Promise<{ access_token: string; expires_in: number } | null> {
+async function refreshSpotifyToken(
+  refreshToken: string,
+): Promise<{ access_token: string; expires_in: number } | null> {
   try {
-    const response = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
+    const response = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-        grant_type: 'refresh_token',
+        grant_type: "refresh_token",
         refresh_token: refreshToken,
         client_id: process.env.SPOTIFY_CLIENT_ID!,
         client_secret: process.env.SPOTIFY_CLIENT_SECRET!,
@@ -22,12 +21,15 @@ async function refreshSpotifyToken(refreshToken: string): Promise<{ access_token
     });
 
     if (response.ok) {
-      const data = await response.json() as { access_token: string; expires_in: number };
+      const data = (await response.json()) as {
+        access_token: string;
+        expires_in: number;
+      };
       return data;
     }
     return null;
   } catch (error) {
-    console.error('Token refresh failed:', error);
+    console.error("Token refresh failed:", error);
     return null;
   }
 }
@@ -39,7 +41,10 @@ interface SpotifySession {
 }
 
 // Helper function to make authenticated Spotify API request with token refresh
-async function makeSpotifyRequest(url: string, session: SpotifySession): Promise<Response> {
+async function makeSpotifyRequest(
+  url: string,
+  session: SpotifySession,
+): Promise<Response> {
   // First try with current access token
   if (session.accessToken) {
     const response = await fetch(url, {
@@ -56,10 +61,10 @@ async function makeSpotifyRequest(url: string, session: SpotifySession): Promise
 
   // Token is invalid/expired, try to refresh
   if (session.refreshToken) {
-    console.log('Access token expired, attempting refresh...');
+    console.log("Access token expired, attempting refresh...");
     const refreshResult = await refreshSpotifyToken(session.refreshToken);
     if (refreshResult) {
-      console.log('Token refresh successful, retrying request...');
+      console.log("Token refresh successful, retrying request...");
       // Retry the request with the new token
       return await fetch(url, {
         headers: {
@@ -70,7 +75,7 @@ async function makeSpotifyRequest(url: string, session: SpotifySession): Promise
   }
 
   // If we get here, we couldn't refresh the token
-  throw new Error('Authentication failed - please re-authenticate');
+  throw new Error("Authentication failed - please re-authenticate");
 }
 
 interface SpotifyTrack {
@@ -134,19 +139,19 @@ export const spotifyRouter = createTRPCRouter({
       z.object({
         limit: z.number().min(1).max(50).default(50),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const response = await makeSpotifyRequest(
         `https://api.spotify.com/v1/me/tracks?limit=${input.limit}&offset=${input.offset}`,
-        ctx.session
+        ctx.session,
       );
 
       if (!response.ok) {
         throw new Error(`Spotify API error: ${response.status}`);
       }
 
-      const data = await response.json() as LikedSongsResponse;
+      const data = (await response.json()) as LikedSongsResponse;
 
       return {
         tracks: data.items.map((item) => ({
@@ -173,19 +178,19 @@ export const spotifyRouter = createTRPCRouter({
       z.object({
         limit: z.number().min(1).max(50).default(20),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const response = await makeSpotifyRequest(
         `https://api.spotify.com/v1/me/playlists?limit=${input.limit}&offset=${input.offset}`,
-        ctx.session
+        ctx.session,
       );
 
       if (!response.ok) {
         throw new Error(`Spotify API error: ${response.status}`);
       }
 
-      const data = await response.json() as PlaylistsResponse;
+      const data = (await response.json()) as PlaylistsResponse;
 
       return {
         playlists: data.items.map((playlist) => ({
@@ -208,19 +213,19 @@ export const spotifyRouter = createTRPCRouter({
         id: z.string(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const response = await makeSpotifyRequest(
         `https://api.spotify.com/v1/playlists/${input.id}/tracks?limit=${input.limit}&offset=${input.offset}`,
-        ctx.session
+        ctx.session,
       );
 
       if (!response.ok) {
         throw new Error(`Spotify API error: ${response.status}`);
       }
 
-      const data = await response.json() as PlaylistTracksResponse;
+      const data = (await response.json()) as PlaylistTracksResponse;
 
       return {
         tracks: data.items.map((item) => ({

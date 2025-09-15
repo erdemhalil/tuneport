@@ -11,8 +11,8 @@ export const env = createEnv({
     SPOTIFY_CLIENT_ID: z.string(),
     SPOTIFY_CLIENT_SECRET: z.string(),
     YOUTUBE_API_KEY: z.string(),
-    REDIS_HOST: z.string().default('localhost'),
-    REDIS_PORT: z.string().default('6379'),
+    REDIS_HOST: z.string().default("localhost"),
+    REDIS_PORT: z.string().default("6379"),
     REDIS_PASSWORD: z.string().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])

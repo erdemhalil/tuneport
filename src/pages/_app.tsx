@@ -4,6 +4,8 @@ import { type AppType } from "next/app";
 import { Geist } from "next/font/google";
 
 import { api } from "~/utils/api";
+import { DownloadProvider } from "~/contexts/DownloadContext";
+import { DownloadProgressWidget } from "~/components/ui/DownloadProgressWidget";
 
 import "~/styles/globals.css";
 
@@ -17,9 +19,12 @@ const MyApp: AppType<{ session: Session | null }> = ({
 }) => {
   return (
     <SessionProvider session={session}>
-      <div className={geist.className}>
-        <Component {...pageProps} />
-      </div>
+      <DownloadProvider>
+        <div className={geist.className}>
+          <Component {...pageProps} />
+          <DownloadProgressWidget />
+        </div>
+      </DownloadProvider>
     </SessionProvider>
   );
 };

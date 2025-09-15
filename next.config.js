@@ -8,6 +8,31 @@ import "./src/env.js";
 const config = {
   reactStrictMode: true,
 
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "i.scdn.co",
+      },
+      {
+        protocol: "https",
+        hostname: "mosaic.scdn.co",
+      },
+      {
+        protocol: "https",
+        hostname: "image-cdn-ak.spotifycdn.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.spotifycdn.com",
+      },
+      {
+        protocol: "https",
+        hostname: "i.ytimg.com",
+      },
+    ],
+  },
+
   /**
    * If you are using `appDir` then you must comment the below `i18n` config out.
    *

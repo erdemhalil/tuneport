@@ -1,3 +1,4 @@
-import { handlers } from "~/server/auth";
+import NextAuth from "~/server/auth";
 
-export const { GET, POST } = handlers;
+export const GET = NextAuth;
+export const POST = NextAuth;

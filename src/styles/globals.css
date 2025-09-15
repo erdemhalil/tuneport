@@ -118,3 +118,26 @@ body {
 .progress-bar {
   transition: width 0.3s ease;
 }
+
+/* Progress bar width utilities */
+.w-progress-0 { width: 0%; }
+.w-progress-5 { width: 5%; }
+.w-progress-10 { width: 10%; }
+.w-progress-15 { width: 15%; }
+.w-progress-20 { width: 20%; }
+.w-progress-25 { width: 25%; }
+.w-progress-30 { width: 30%; }
+.w-progress-35 { width: 35%; }
+.w-progress-40 { width: 40%; }
+.w-progress-45 { width: 45%; }
+.w-progress-50 { width: 50%; }
+.w-progress-55 { width: 55%; }
+.w-progress-60 { width: 60%; }
+.w-progress-65 { width: 65%; }
+.w-progress-70 { width: 70%; }
+.w-progress-75 { width: 75%; }
+.w-progress-80 { width: 80%; }
+.w-progress-85 { width: 85%; }
+.w-progress-90 { width: 90%; }
+.w-progress-95 { width: 95%; }
+.w-progress-100 { width: 100%; }

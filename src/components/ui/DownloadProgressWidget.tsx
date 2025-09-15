@@ -106,6 +106,13 @@ export function DownloadProgressWidget() {
     }
   };
 
+  // Helper function to get progress bar class
+  const getProgressClass = (progress: number): string => {
+    const clamped = Math.min(100, Math.max(0, progress));
+    const rounded = Math.round(clamped / 5) * 5; // Round to nearest 5
+    return `w-progress-${rounded}`;
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
@@ -188,21 +195,28 @@ export function DownloadProgressWidget() {
       <div className="animate-scale-in fixed right-6 bottom-6 z-50">
         <button
           onClick={() => setIsMinimized(false)}
-          className="glass group flex items-center space-x-3 rounded-2xl border border-neutral-200/50 px-6 py-4 shadow-lg transition-all duration-200 hover:shadow-xl"
+          className="glass group flex items-center space-x-4 rounded-2xl border border-neutral-200/50 px-6 py-4 shadow-lg transition-all duration-200 hover:shadow-xl"
         >
-          <div className="h-3 w-3 animate-pulse rounded-full bg-blue-500"></div>
-          <div className="space-y-0.5">
-            <div className="text-sm font-medium text-neutral-900">
-              Downloads
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <div className="h-4 w-4 animate-pulse rounded-full bg-blue-500"></div>
+              {activeJobs.length > 0 && (
+                <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-emerald-400"></div>
+              )}
             </div>
-            <div className="text-xs text-neutral-500">
-              {activeJobs.length > 0
-                ? `${activeJobs.length} active`
-                : `${jobs.length} total`}
+            <div className="space-y-0.5">
+              <div className="text-sm font-medium text-neutral-900">
+                Downloads
+              </div>
+              <div className="text-xs text-neutral-500">
+                {activeJobs.length > 0
+                  ? `${activeJobs.length} active`
+                  : `${jobs.length} total`}
+              </div>
             </div>
           </div>
           <svg
-            className="h-4 w-4 text-neutral-400 transition-colors group-hover:text-neutral-600"
+            className="h-5 w-5 text-neutral-400 transition-colors group-hover:text-neutral-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -220,130 +234,82 @@ export function DownloadProgressWidget() {
   }
 
   return (
-    <div className="animate-scale-in fixed right-6 bottom-6 z-50 max-w-sm">
-      <div className="glass overflow-hidden rounded-3xl border border-neutral-200/50 shadow-xl">
+    <div className="animate-scale-in fixed right-6 bottom-6 z-50 w-96">
+      <div className="glass overflow-hidden rounded-3xl border border-neutral-200/50 shadow-2xl">
         {/* Premium Header */}
-        <div className="flex items-center justify-between border-b border-neutral-200/50 bg-white/50 px-6 py-4">
-          <div className="space-y-1">
-            <h3 className="text-lg font-medium text-neutral-900">Downloads</h3>
-            <div className="text-xs text-neutral-500">
-              {activeJobs.length > 0 && `${activeJobs.length} active`}
-              {activeJobs.length > 0 &&
-                (completedJobs.length > 0 || failedJobs.length > 0) &&
-                " • "}
-              {completedJobs.length > 0 && `${completedJobs.length} completed`}
-              {(activeJobs.length > 0 || completedJobs.length > 0) &&
-                failedJobs.length > 0 &&
-                " • "}
-              {failedJobs.length > 0 && `${failedJobs.length} failed`}
+        <div className="flex items-center justify-between border-b border-neutral-200/50 bg-white/60 px-6 py-5">
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
+                <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </div>
+              {activeJobs.length > 0 && (
+                <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-400 border-2 border-white"></div>
+              )}
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-semibold text-neutral-900">Downloads</h3>
+              <div className="text-sm text-neutral-500">
+                {activeJobs.length > 0 && (
+                  <span className="text-blue-600 font-medium">{activeJobs.length} active</span>
+                )}
+                {activeJobs.length > 0 && completedJobs.length > 0 && <span> • </span>}
+                {completedJobs.length > 0 && (
+                  <span className="text-emerald-600 font-medium">{completedJobs.length} completed</span>
+                )}
+                {(activeJobs.length > 0 || completedJobs.length > 0) && failedJobs.length > 0 && <span> • </span>}
+                {failedJobs.length > 0 && (
+                  <span className="text-red-500 font-medium">{failedJobs.length} failed</span>
+                )}
+              </div>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             {completedJobs.length > 0 && (
               <button
                 onClick={clearCompleted}
-                className="text-xs font-medium text-neutral-500 transition-colors hover:text-neutral-700"
+                className="inline-flex items-center justify-center rounded-xl bg-neutral-100 p-2.5 text-neutral-600 transition-all duration-200 hover:bg-neutral-200 hover:text-neutral-800"
+                title="Clear completed downloads"
               >
-                Clear
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
               </button>
             )}
             <button
               onClick={() => setIsMinimized(true)}
-              className="rounded-lg p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600"
+              className="inline-flex items-center justify-center rounded-xl bg-neutral-100 p-2.5 text-neutral-600 transition-all duration-200 hover:bg-neutral-200 hover:text-neutral-800"
               title="Minimize downloads"
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
           </div>
         </div>
 
         {/* Premium Jobs List */}
-        <div
-          className={`max-h-96 overflow-y-auto ${isExpanded ? "max-h-none" : ""}`}
-        >
+        <div className={`max-h-[500px] overflow-y-auto ${isExpanded ? "max-h-none" : ""}`}>
           {jobs.map((job) => (
-            <div
-              key={job.jobId}
-              className="border-b border-neutral-100/50 last:border-b-0"
-            >
-              <div className="space-y-3 p-6">
-                <div className="flex items-start justify-between">
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <div className="flex items-center space-x-3">
-                      {getStatusIcon(job.status)}
-                      <div className="min-w-0 flex-1">
-                        <h4 className="truncate text-sm font-medium text-neutral-900">
-                          {job.trackName}
-                        </h4>
-                        <p className="truncate text-xs text-neutral-600">
-                          {job.artistName}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => removeJob(job.jobId)}
-                    className="ml-3 flex-shrink-0 rounded-lg p-1 text-neutral-400 transition-all duration-200 hover:bg-neutral-100 hover:text-neutral-600"
-                    title="Remove download"
-                  >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Premium Progress Bar */}
-                {job.status === "active" && (
-                  <div className="space-y-2">
-                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-neutral-200">
-                      <div
-                        className="progress-bar absolute top-0 left-0 h-2 rounded-full bg-blue-500"
-                        style={{ width: `${job.progress}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="font-medium text-neutral-600">
-                        {Math.round(job.progress)}%
-                      </span>
-                      <span className="text-neutral-500 capitalize">
-                        {job.status}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Status and Actions */}
+            <div key={job.jobId} className="border-b border-neutral-100/50 last:border-b-0">
+              <div className="space-y-4 p-6">
                 <div className="flex items-center justify-between">
-                  <span
-                    className={`text-xs font-medium ${getStatusColor(job.status)}`}
-                  >
-                    {job.status === "completed" && job.result
-                      ? formatFileSize(job.result.fileSize)
-                      : job.status}
-                  </span>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-4 flex-1 min-w-0">
+                    <div className="flex-shrink-0">
+                      {getStatusIcon(job.status)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="truncate text-base font-medium text-neutral-900">
+                        {job.trackName}
+                      </h4>
+                      <p className="truncate text-sm text-neutral-600 mt-1">
+                        {job.artistName}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 flex-shrink-0">
                     {job.status === "completed" && job.result?.downloadId && (
                       <button
                         onClick={() =>
@@ -353,21 +319,62 @@ export function DownloadProgressWidget() {
                             job.artistName,
                           )
                         }
-                        className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-all duration-200 hover:bg-neutral-800"
+                        className="inline-flex items-center justify-center rounded-xl bg-blue-500 p-2.5 text-white shadow-sm transition-all duration-200 hover:bg-blue-600 hover:shadow-md"
                         title="Download file"
                       >
-                        Download
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
                       </button>
                     )}
-                    {job.status === "failed" && (
-                      <span
-                        className="max-w-24 truncate text-xs text-red-500"
-                        title={job.failedReason ?? job.error ?? "Failed"}
-                      >
-                        {job.failedReason ?? job.error ?? "Failed"}
-                      </span>
-                    )}
+                    <button
+                      onClick={() => removeJob(job.jobId)}
+                      className="inline-flex items-center justify-center rounded-xl bg-neutral-100 p-2.5 text-neutral-600 transition-all duration-200 hover:bg-red-100 hover:text-red-600"
+                      title="Remove download"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
+                </div>
+
+                {/* Premium Progress Bar */}
+                {job.status === "active" && (
+                    <div className="space-y-3">
+                      <div className="relative h-3 w-full overflow-hidden rounded-full bg-neutral-200">
+                        <div
+                          className={`progress-bar absolute top-0 left-0 h-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 ${getProgressClass(job.progress)}`}
+                        />
+                      </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-semibold text-blue-600">
+                        {Math.round(job.progress)}%
+                      </span>
+                      <span className="text-sm text-neutral-500 capitalize bg-neutral-100 px-2 py-1 rounded-md">
+                        {job.status}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Status and File Size */}
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm font-medium ${getStatusColor(job.status)}`}>
+                    {job.status === "completed" && job.result
+                      ? formatFileSize(job.result.fileSize)
+                      : job.status === "failed"
+                      ? "Failed"
+                      : "Queued"}
+                  </span>
+                  {job.status === "failed" && (
+                    <span
+                      className="max-w-32 truncate text-sm text-red-500 bg-red-50 px-2 py-1 rounded-md"
+                      title={job.failedReason ?? job.error ?? "Failed"}
+                    >
+                      {job.failedReason ?? job.error ?? "Error occurred"}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

@@ -12,6 +12,7 @@ interface DownloadJob {
   videoId: string;
   trackName: string;
   artistName: string;
+  artwork?: string; // Spotify album artwork URL
   status: string;
   progress: number;
   result?: {
@@ -36,6 +37,7 @@ interface DownloadContextType {
       videoId: string;
       trackName: string;
       artistName: string;
+      artwork?: string;
     }>,
   ) => void;
   removeJob: (jobId: string) => void;
@@ -79,6 +81,7 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
       videoId: string;
       trackName: string;
       artistName: string;
+      artwork?: string;
     }>,
   ) => {
     const jobsToAdd = newJobs.map((job) => ({

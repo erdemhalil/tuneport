@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useDownloads } from "~/contexts/DownloadContext";
 
 export function DownloadProgressWidget() {
@@ -195,9 +196,9 @@ export function DownloadProgressWidget() {
       <div className="animate-scale-in fixed right-6 bottom-6 z-50">
         <button
           onClick={() => setIsMinimized(false)}
-          className="glass group flex items-center space-x-4 rounded-2xl border border-neutral-200/50 px-6 py-4 shadow-lg transition-all duration-200 hover:shadow-xl"
+          className="glass group flex items-center justify-between w-80 rounded-2xl border border-neutral-200/50 px-6 py-4 shadow-lg transition-all duration-200 hover:shadow-xl hover:border-blue-200/60"
         >
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             <div className="relative">
               <div className="h-4 w-4 animate-pulse rounded-full bg-blue-500"></div>
               {activeJobs.length > 0 && (
@@ -215,19 +216,24 @@ export function DownloadProgressWidget() {
               </div>
             </div>
           </div>
-          <svg
-            className="h-5 w-5 text-neutral-400 transition-colors group-hover:text-neutral-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 10l7-7m0 0l7 7m-7-7v18"
-            />
-          </svg>
+          <div className="flex items-center space-x-3">
+            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+              Expand
+            </span>
+            <svg
+              className="h-5 w-5 text-blue-500 transition-colors group-hover:text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 10l7-7m0 0l7 7m-7-7v18"
+              />
+            </svg>
+          </div>
         </button>
       </div>
     );
@@ -299,6 +305,28 @@ export function DownloadProgressWidget() {
                   <div className="flex items-center space-x-4 flex-1 min-w-0">
                     <div className="flex-shrink-0">
                       {getStatusIcon(job.status)}
+                    </div>
+                    {/* Spotify Artwork */}
+                    <div className="flex-shrink-0">
+                      {job.artwork ? (
+                        <Image
+                          src={job.artwork}
+                          alt={`${job.trackName} album art`}
+                          width={48}
+                          height={48}
+                          className="h-12 w-12 rounded-lg object-cover shadow-sm border border-neutral-200/50"
+                          onError={(e) => {
+                            // Fallback if image fails to load
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-neutral-200 to-neutral-300 border border-neutral-200/50 flex items-center justify-center">
+                          <svg className="h-6 w-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                          </svg>
+                        </div>
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <h4 className="truncate text-base font-medium text-neutral-900">

@@ -277,6 +277,7 @@ export const youtubeRouter = createTRPCRouter({
             trackName: z.string(),
             artistName: z.string(),
             allArtists: z.array(z.string()).optional(), // Array of all artists from Spotify
+            artwork: z.string().optional(), // Spotify album artwork URL
           }),
         ),
       }),
@@ -305,6 +306,7 @@ export const youtubeRouter = createTRPCRouter({
           trackName: track.trackName,
           artistName: track.artistName,
           allArtists: track.allArtists,
+          artwork: track.artwork,
           userId,
           jobId: `${userId}-${track.videoId}-${Date.now()}`,
         };

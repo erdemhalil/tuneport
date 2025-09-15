@@ -44,6 +44,7 @@ export interface DownloadJobData {
   trackName: string;
   artistName: string;
   allArtists?: string[]; // Optional array of all artists from Spotify
+  artwork?: string; // Spotify album artwork URL
   userId: string;
   jobId: string;
 }

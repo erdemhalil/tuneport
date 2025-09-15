@@ -39,12 +39,17 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
       // Add jobs to the download context for progress tracking
       const validJobs = data.jobs
         .filter((job) => job.jobId)
-        .map((job) => ({
-          jobId: job.jobId!,
-          videoId: job.videoId,
-          trackName: job.trackName,
-          artistName: job.artistName,
-        }));
+        .map((job) => {
+          // Find the corresponding track to get artwork
+          const track = tracks.find((t) => t.name === job.trackName && t.artists.includes(job.artistName));
+          return {
+            jobId: job.jobId!,
+            videoId: job.videoId,
+            trackName: job.trackName,
+            artistName: job.artistName,
+            artwork: track?.album.image,
+          };
+        });
       addJobs(validJobs);
     },
     onError: (error) => {
@@ -93,6 +98,7 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
           trackName: track.name,
           artistName: track.artists[0] ?? "Unknown Artist",
           allArtists: track.artists, // Pass all artists from Spotify
+          artwork: track.album.image, // Pass Spotify album artwork
         };
       })
       .filter((track): track is NonNullable<typeof track> => track !== null);

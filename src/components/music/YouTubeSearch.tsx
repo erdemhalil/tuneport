@@ -66,8 +66,11 @@ export function YouTubeSearch({
     explicit: boolean;
   };
 
-  const _raw = (searchResults as unknown) as { matches?: unknown };
-  const matches: Match[] = Array.isArray(_raw.matches) ? (_raw.matches as Match[]) : [];
+  const matches: Match[] = (() => {
+    if (!searchResults) return [];
+    const data = searchResults as { matches?: unknown };
+    return Array.isArray(data.matches) ? (data.matches as Match[]) : [];
+  })();
 
   return (
     <div className="glass rounded-2xl border border-white/20 p-6 backdrop-blur-xl">

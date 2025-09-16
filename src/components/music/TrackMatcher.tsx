@@ -4,28 +4,31 @@ import Image from "next/image";
 import { YouTubeSearch } from "./YouTubeSearch";
 import { api } from "~/utils/api";
 import { useDownloads } from "~/contexts/DownloadContext";
-
-interface Track {
-  id: string;
-  name: string;
-  artists: string[];
-  album: {
-    name: string;
-    image?: string;
-  };
-  duration_ms: number;
-  explicit?: boolean;
-  added_at?: string;
-  spotify_url?: string;
-}
+import type { Collection, Track } from "~/utils/types";
+import { Pagination } from "~/components/ui/Pagination";
 
 interface TrackMatcherProps {
+  collection: Collection;
   tracks: Track[];
-  title?: string;
   isLoading?: boolean;
+  showHeader?: boolean;
+  // Pagination props
+  currentPage?: number;
+  totalItems?: number;
+  itemsPerPage?: number;
+  onPageChange?: (page: number) => void;
 }
 
-export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
+export function TrackMatcher({ 
+  collection, 
+  tracks, 
+  isLoading, 
+  showHeader = true,
+  currentPage = 1,
+  totalItems = 0,
+  itemsPerPage = 50,
+  onPageChange
+}: TrackMatcherProps) {
   const [selectedTracks, setSelectedTracks] = useState<Record<string, string>>(
     {},
   );
@@ -124,12 +127,14 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
   if (isLoading) {
     return (
       <div className="animate-fade-in space-y-8">
-        <div className="space-y-3">
-          <h2 className="text-3xl font-light tracking-tight text-white">
-            {title ?? "Tracks"}
-          </h2>
-          <p className="text-gray-400">Loading your music collection</p>
-        </div>
+        {showHeader && (
+          <div className="space-y-3">
+            <h2 className="text-3xl font-light tracking-tight text-white">
+              {collection.name}
+            </h2>
+            <p className="text-gray-400">Loading your music collection</p>
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
           <div className="space-y-4">
             <h3 className="text-xl font-medium text-white">
@@ -174,27 +179,32 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
 
   return (
     <div className="animate-fade-in space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <h2 className="text-3xl font-light tracking-tight text-white">
-            {title ?? "Tracks"}
-          </h2>
-          <p className="text-gray-400">
-            {Object.keys(selectedTracks).length} of {tracks.length} tracks
-            matched
-          </p>
+      {showHeader && (
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <h2 className="text-3xl font-light tracking-tight text-white">
+              {collection.name}
+            </h2>
+            <p className="text-gray-400">
+              {Object.keys(selectedTracks).length > 0
+                ? `${Object.keys(selectedTracks).length} of ${tracks.length} selected`
+                : `${tracks.length} ${tracks.length === 1 ? 'song' : 'songs'}`}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
         {/* Spotify Tracks List - Premium Design */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-medium text-white">
-              Your Spotify Library
-            </h3>
-            <div className="text-sm text-gray-400">
-              {tracks.length} tracks
+            <h3 className="text-xl font-medium text-white">Your Spotify Library</h3>
+            <div>
+              {Object.keys(selectedTracks).length > 0 && (
+                <span className="inline-flex items-center rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-200">
+                  {Object.keys(selectedTracks).length} selected
+                </span>
+              )}
             </div>
           </div>
 
@@ -298,6 +308,17 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
               </div>
             ))}
           </div>
+
+          {/* Pagination within Spotify Library section */}
+          {onPageChange && totalItems > itemsPerPage && (
+            <Pagination
+              currentPage={currentPage}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={onPageChange}
+              className="mt-6"
+            />
+          )}
         </div>
 
         {/* YouTube Search Panel - Premium Design */}

@@ -1,70 +1,61 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { api } from "~/utils/api";
-import { PlaylistList } from "~/components/music/PlaylistList";
+import { CollectionList } from "~/components/music/CollectionList";
 import { TrackMatcher } from "~/components/music/TrackMatcher";
 
 export default function Home() {
   const { data: sessionData } = useSession();
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(
     null,
   );
-  const [currentPage, setCurrentPage] = useState(0);
-  const pageSize = 50;
 
-  // Fetch liked songs with pagination
-  const { data: likedSongsData, isLoading: likedSongsLoading } =
-    api.spotify.likedSongs.useQuery(
-      { limit: pageSize, offset: currentPage * pageSize },
+  // Pagination state for collections
+  const [collectionsPage, setCollectionsPage] = useState(1);
+  const COLLECTIONS_PER_PAGE = 20;
+
+  // Pagination state for tracks
+  const [tracksPage, setTracksPage] = useState(1);
+  const TRACKS_PER_PAGE = 50;
+
+  // Fetch collections (liked songs + playlists) with pagination
+  const { data: collectionsData, isLoading: collectionsLoading } =
+    api.spotify.collections.useQuery(
+      {
+        limit: COLLECTIONS_PER_PAGE,
+        offset: (collectionsPage - 1) * COLLECTIONS_PER_PAGE,
+      },
       { enabled: !!sessionData?.user },
     );
 
-  // Pagination helpers
-  const totalPages = likedSongsData
-    ? Math.ceil(likedSongsData.total / pageSize)
-    : 0;
-  const hasNextPage = currentPage < totalPages - 1;
-  const hasPrevPage = currentPage > 0;
-
-  const goToNextPage = () => {
-    if (hasNextPage) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  };
-
-  const goToPrevPage = () => {
-    if (hasPrevPage) {
-      setCurrentPage((prev) => prev - 1);
-    }
-  };
-
-  const goToPage = (page: number) => {
-    if (page >= 0 && page < totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  // Reset to first page when switching between views
-  useEffect(() => {
-    setCurrentPage(0);
-  }, [selectedPlaylistId]);
-
-  // Fetch playlists
-  const { data: playlistsData, isLoading: playlistsLoading } =
-    api.spotify.playlists.useQuery(
-      { limit: 20, offset: 0 },
-      { enabled: !!sessionData?.user },
+  // Fetch collection tracks when a collection is selected with pagination
+  const { data: collectionTracksData, isLoading: collectionTracksLoading } =
+    api.spotify.collectionTracks.useQuery(
+      {
+        collectionId: selectedCollectionId!,
+        limit: TRACKS_PER_PAGE,
+        offset: (tracksPage - 1) * TRACKS_PER_PAGE,
+      },
+      { enabled: !!sessionData?.user && !!selectedCollectionId },
     );
 
-  // Fetch playlist tracks when a playlist is selected
-  const { data: playlistTracksData, isLoading: playlistTracksLoading } =
-    api.spotify.playlistTracks.useQuery(
-      { id: selectedPlaylistId!, limit: 50, offset: 0 },
-      { enabled: !!sessionData?.user && !!selectedPlaylistId },
-    );
+  // Pagination handlers
+  const handleCollectionsPageChange = (page: number) => {
+    setCollectionsPage(page);
+  };
+
+  const handleTracksPageChange = (page: number) => {
+    setTracksPage(page);
+  };
+
+  // Reset tracks page when switching collections
+  const handleCollectionSelect = (collectionId: string | null) => {
+    setSelectedCollectionId(collectionId);
+    setTracksPage(1); // Reset to first page when switching collections
+  };
 
   return (
     <>
@@ -151,113 +142,22 @@ export default function Home() {
           {/* Main Content - Generous spacing for premium feel */}
           <main className="relative mx-auto max-w-7xl px-6 py-12 lg:px-8">
             <div className="space-y-16">
-              {/* Liked Songs Section */}
-              <section className="animate-fade-in space-y-8">
-                <TrackMatcher
-                  tracks={likedSongsData?.tracks ?? []}
-                  title="Liked Songs"
-                  isLoading={likedSongsLoading}
-                />
-
-                {/* Premium Pagination Controls */}
-                {totalPages > 1 && (
-                  <div className="glass flex items-center justify-between rounded-2xl p-6 shadow-2xl border border-white/10 backdrop-blur-xl">
-                    <div className="text-sm font-medium text-gray-300">
-                      <span className="text-white">
-                        {currentPage + 1}
-                      </span>{" "}
-                      of {totalPages}
-                      <span className="ml-2 text-gray-400">
-                        • {likedSongsData?.total ?? 0} songs
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <button
-                        onClick={goToPrevPage}
-                        disabled={!hasPrevPage}
-                        className="inline-flex items-center rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:border-white/30 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        <svg
-                          className="mr-2 h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 19l-7-7 7-7"
-                          />
-                        </svg>
-                        Previous
-                      </button>
-
-                      {/* Page Numbers - Clean minimal design */}
-                      <div className="flex items-center space-x-2">
-                        {Array.from(
-                          { length: Math.min(5, totalPages) },
-                          (_, i) => {
-                            const pageNum =
-                              Math.max(
-                                0,
-                                Math.min(totalPages - 5, currentPage - 2),
-                              ) + i;
-                            if (pageNum >= totalPages) return null;
-
-                            return (
-                              <button
-                                key={pageNum}
-                                onClick={() => goToPage(pageNum)}
-                                className={`h-10 w-10 rounded-xl text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none ${
-                                  pageNum === currentPage
-                                    ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg"
-                                    : "border border-white/20 bg-white/5 backdrop-blur-sm text-gray-300 hover:border-white/30 hover:bg-white/10 hover:text-white"
-                                }`}
-                              >
-                                {pageNum + 1}
-                              </button>
-                            );
-                          },
-                        )}
-                      </div>
-
-                      <button
-                        onClick={goToNextPage}
-                        disabled={!hasNextPage}
-                        className="inline-flex items-center rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:border-white/30 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        Next
-                        <svg
-                          className="ml-2 h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </section>
-
-              {/* Selected Playlist Tracks */}
-              {selectedPlaylistId && playlistTracksData && (
+              {/* Selected Collection Tracks */}
+              {selectedCollectionId && collectionTracksData && collectionsData && (
                 <section className="animate-fade-in space-y-8">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-3xl font-light tracking-tight text-white">
-                      {playlistsData?.playlists.find(
-                        (p) => p.id === selectedPlaylistId,
-                      )?.name ?? "Playlist"}
-                    </h2>
+                    <div className="flex items-baseline gap-4">
+                      <h2 className="text-3xl font-light tracking-tight text-white">
+                        {collectionsData.collections.find(
+                          (c) => c.id === selectedCollectionId,
+                        )?.name ?? "Collection"}
+                      </h2>
+                      <span className="text-sm text-gray-400">
+                        {collectionTracksData.total} {collectionTracksData.total === 1 ? 'track' : 'tracks'}
+                      </span>
+                    </div>
                     <button
-                      onClick={() => setSelectedPlaylistId(null)}
+                      onClick={() => handleCollectionSelect(null)}
                       className="inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
                     >
                       <svg
@@ -273,23 +173,35 @@ export default function Home() {
                           d="M15 19l-7-7 7-7"
                         />
                       </svg>
-                      Back to Library
+                      Back to Collections
                     </button>
                   </div>
                   <TrackMatcher
-                    tracks={playlistTracksData.tracks}
-                    isLoading={playlistTracksLoading}
+                    collection={collectionsData.collections.find(
+                      (c) => c.id === selectedCollectionId,
+                    )!}
+                    tracks={collectionTracksData.tracks}
+                    isLoading={collectionTracksLoading}
+                    showHeader={false}
+                    currentPage={tracksPage}
+                    totalItems={collectionTracksData.total}
+                    itemsPerPage={TRACKS_PER_PAGE}
+                    onPageChange={handleTracksPageChange}
                   />
                 </section>
               )}
 
-              {/* Playlists */}
-              {!selectedPlaylistId && (
-                <section className="animate-fade-in">
-                  <PlaylistList
-                    playlists={playlistsData?.playlists ?? []}
-                    onPlaylistClick={setSelectedPlaylistId}
-                    isLoading={playlistsLoading}
+              {/* Collections List */}
+              {!selectedCollectionId && (
+                <section className="animate-fade-in space-y-8">
+                  <CollectionList
+                    collections={collectionsData?.collections ?? []}
+                    onCollectionClick={handleCollectionSelect}
+                    isLoading={collectionsLoading}
+                    currentPage={collectionsPage}
+                    totalItems={collectionsData?.total ?? 0}
+                    itemsPerPage={COLLECTIONS_PER_PAGE}
+                    onPageChange={handleCollectionsPageChange}
                   />
                 </section>
               )}

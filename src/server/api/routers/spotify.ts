@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import type { Collection } from "~/utils/types";
 
 // Helper function to refresh Spotify access token
 async function refreshSpotifyToken(
@@ -245,5 +246,142 @@ export const spotifyRouter = createTRPCRouter({
         limit: data.limit,
         offset: data.offset,
       };
+    }),
+
+  collections: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(50).default(20),
+        offset: z.number().min(0).default(0),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // Fetch liked songs count first
+      const likedSongsResponse = await makeSpotifyRequest(
+        "https://api.spotify.com/v1/me/tracks?limit=1&offset=0",
+        ctx.session,
+      );
+
+      if (!likedSongsResponse.ok) {
+        throw new Error(`Spotify API error: ${likedSongsResponse.status}`);
+      }
+
+      const likedSongsData = (await likedSongsResponse.json()) as LikedSongsResponse;
+
+      // Fetch playlists
+      const playlistsResponse = await makeSpotifyRequest(
+        `https://api.spotify.com/v1/me/playlists?limit=${input.limit}&offset=${input.offset}`,
+        ctx.session,
+      );
+
+      if (!playlistsResponse.ok) {
+        throw new Error(`Spotify API error: ${playlistsResponse.status}`);
+      }
+
+      const playlistsData = (await playlistsResponse.json()) as PlaylistsResponse;
+
+      // Create collections array starting with Liked Songs
+      const collections: Collection[] = [
+        {
+          id: "liked_songs",
+          name: "Liked Songs",
+          description: "Your favorite tracks",
+          image: null, // Liked Songs doesn't have a specific image
+          track_count: likedSongsData.total,
+          owner: "You",
+          type: "liked_songs",
+        },
+        // Add playlists
+        ...playlistsData.items.map((playlist) => ({
+          id: playlist.id,
+          name: playlist.name,
+          description: playlist.description,
+          image: playlist.images?.[0]?.url ?? null,
+          track_count: playlist.tracks.total,
+          owner: playlist.owner.display_name,
+          type: "playlist" as const,
+        })),
+      ];
+
+      return {
+        collections,
+        total: collections.length,
+        limit: input.limit,
+        offset: input.offset,
+      };
+    }),
+
+  collectionTracks: protectedProcedure
+    .input(
+      z.object({
+        collectionId: z.string(),
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      if (input.collectionId === "liked_songs") {
+        // Fetch liked songs
+        const response = await makeSpotifyRequest(
+          `https://api.spotify.com/v1/me/tracks?limit=${input.limit}&offset=${input.offset}`,
+          ctx.session,
+        );
+
+        if (!response.ok) {
+          throw new Error(`Spotify API error: ${response.status}`);
+        }
+
+        const data = (await response.json()) as LikedSongsResponse;
+
+        return {
+          tracks: data.items.map((item) => ({
+            id: item.track.id,
+            name: item.track.name,
+            artists: item.track.artists.map((artist) => artist.name),
+            album: {
+              name: item.track.album.name,
+              image: item.track.album.images[0]?.url,
+            },
+            duration_ms: item.track.duration_ms,
+            explicit: item.track.explicit,
+            added_at: item.added_at,
+            spotify_url: item.track.external_urls.spotify,
+          })),
+          total: data.total,
+          limit: data.limit,
+          offset: data.offset,
+        };
+      } else {
+        // Fetch playlist tracks
+        const response = await makeSpotifyRequest(
+          `https://api.spotify.com/v1/playlists/${input.collectionId}/tracks?limit=${input.limit}&offset=${input.offset}`,
+          ctx.session,
+        );
+
+        if (!response.ok) {
+          throw new Error(`Spotify API error: ${response.status}`);
+        }
+
+        const data = (await response.json()) as PlaylistTracksResponse;
+
+        return {
+          tracks: data.items.map((item) => ({
+            id: item.track.id,
+            name: item.track.name,
+            artists: item.track.artists.map((artist) => artist.name),
+            album: {
+              name: item.track.album.name,
+              image: item.track.album.images[0]?.url,
+            },
+            duration_ms: item.track.duration_ms,
+            explicit: item.track.explicit,
+            added_at: item.added_at,
+            spotify_url: item.track.external_urls.spotify,
+          })),
+          total: data.total,
+          limit: data.limit,
+          offset: data.offset,
+        };
+      }
     }),
 });

@@ -125,14 +125,14 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
     return (
       <div className="animate-fade-in space-y-8">
         <div className="space-y-3">
-          <h2 className="text-3xl font-light tracking-tight text-neutral-900">
+          <h2 className="text-3xl font-light tracking-tight text-white">
             {title ?? "Tracks"}
           </h2>
-          <p className="text-neutral-600">Loading your music collection</p>
+          <p className="text-gray-400">Loading your music collection</p>
         </div>
         <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
           <div className="space-y-4">
-            <h3 className="text-xl font-medium text-neutral-900">
+            <h3 className="text-xl font-medium text-white">
               Spotify Library
             </h3>
             <div className="space-y-3">
@@ -141,27 +141,27 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
                   key={i}
                   className="glass flex animate-pulse items-center space-x-4 rounded-2xl p-4"
                 >
-                  <div className="h-14 w-14 flex-shrink-0 rounded-xl bg-neutral-200"></div>
+                  <div className="h-14 w-14 flex-shrink-0 rounded-xl bg-white/10"></div>
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 rounded bg-neutral-200"></div>
-                    <div className="h-3 w-1/2 rounded bg-neutral-200"></div>
+                    <div className="h-4 w-3/4 rounded bg-white/10"></div>
+                    <div className="h-3 w-1/2 rounded bg-white/10"></div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
           <div className="glass rounded-2xl p-6">
-            <div className="mb-6 h-6 w-1/3 rounded bg-neutral-200"></div>
+            <div className="mb-6 h-6 w-1/3 rounded bg-white/10"></div>
             <div className="space-y-4">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex animate-pulse items-center space-x-4 rounded-xl border border-neutral-200 p-4"
+                  className="flex animate-pulse items-center space-x-4 rounded-xl border border-white/20 p-4"
                 >
-                  <div className="h-16 w-16 flex-shrink-0 rounded-lg bg-neutral-200"></div>
+                  <div className="h-16 w-16 flex-shrink-0 rounded-lg bg-white/10"></div>
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 rounded bg-neutral-200"></div>
-                    <div className="h-3 w-1/2 rounded bg-neutral-200"></div>
+                    <div className="h-4 w-3/4 rounded bg-white/10"></div>
+                    <div className="h-3 w-1/2 rounded bg-white/10"></div>
                   </div>
                 </div>
               ))}
@@ -176,10 +176,10 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
     <div className="animate-fade-in space-y-8">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
-          <h2 className="text-3xl font-light tracking-tight text-neutral-900">
+          <h2 className="text-3xl font-light tracking-tight text-white">
             {title ?? "Tracks"}
           </h2>
-          <p className="text-neutral-600">
+          <p className="text-gray-400">
             {Object.keys(selectedTracks).length} of {tracks.length} tracks
             matched
           </p>
@@ -190,10 +190,10 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
         {/* Spotify Tracks List - Premium Design */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-medium text-neutral-900">
+            <h3 className="text-xl font-medium text-white">
               Your Spotify Library
             </h3>
-            <div className="text-sm text-neutral-500">
+            <div className="text-sm text-gray-400">
               {tracks.length} tracks
             </div>
           </div>
@@ -202,11 +202,11 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
             {tracks.map((track) => (
               <div
                 key={track.id}
-                className={`group glass flex cursor-pointer items-center space-x-4 rounded-2xl p-4 transition-all duration-200 hover:shadow-md ${
+                className={`group glass relative flex cursor-pointer items-center space-x-4 rounded-2xl p-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
                   currentTrackId === track.id
-                    ? "bg-blue-50/50 ring-2 ring-blue-200 ring-offset-2"
-                    : "hover:bg-neutral-50/50"
-                } ${selectedTracks[track.id] ? "bg-emerald-50/30 ring-2 ring-emerald-200 ring-offset-2" : ""}`}
+                    ? "bg-gradient-to-r from-purple-500/50 to-blue-500/50 ring-2 ring-purple-300 ring-offset-2 ring-offset-slate-900 shadow-xl shadow-purple-500/30 scale-[1.02] border border-purple-300/50"
+                    : "hover:bg-white/15 hover:ring-1 hover:ring-white/30"
+                } ${selectedTracks[track.id] ? "bg-emerald-500/30 ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-900 shadow-lg shadow-emerald-500/20" : ""}`}
                 onClick={() => handleTrackSelect(track.id)}
               >
                 <div className="relative flex-shrink-0">
@@ -216,7 +216,11 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
                       alt={track.album.name}
                       width={56}
                       height={56}
-                      className="h-14 w-14 rounded-xl object-cover shadow-sm"
+                      className={`h-14 w-14 rounded-xl object-cover shadow-sm transition-all duration-200 ${
+                        currentTrackId === track.id 
+                          ? "ring-2 ring-purple-300 shadow-lg shadow-purple-500/30" 
+                          : ""
+                      }`}
                     />
                   )}
                   {selectedTracks[track.id] && (
@@ -234,26 +238,63 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
                       </svg>
                     </div>
                   )}
+                  {/* left indicator removed - replaced by right-side indicator below */}
                 </div>
 
                 <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex items-center space-x-2">
-                    <h4 className="truncate text-sm font-medium text-neutral-900 transition-colors group-hover:text-blue-600">
+                    <h4 className={`truncate text-sm font-medium transition-colors ${
+                      currentTrackId === track.id 
+                        ? "text-white font-semibold" 
+                        : selectedTracks[track.id]
+                        ? "text-emerald-200"
+                        : "text-white group-hover:text-purple-300"
+                    }`}>
                       {track.name}
                     </h4>
                     {track.explicit && (
-                      <span className="inline-flex items-center rounded-md bg-neutral-100 px-1.5 py-0.5 text-xs font-medium text-neutral-600">
+                      <span className="inline-flex items-center rounded-md bg-white/20 px-1.5 py-0.5 text-xs font-medium text-gray-300">
                         E
                       </span>
                     )}
                   </div>
-                  <p className="truncate text-xs text-neutral-600">
+                  <p className={`truncate text-xs transition-colors ${
+                    currentTrackId === track.id
+                      ? "text-purple-100"
+                      : selectedTracks[track.id]
+                      ? "text-gray-300"
+                      : "text-gray-400 group-hover:text-gray-300"
+                  }`}>
                     {track.artists.join(", ")} • {track.album.name}
                   </p>
-                  <p className="text-xs font-medium text-neutral-500">
+                  <p className={`text-xs font-medium transition-colors ${
+                    currentTrackId === track.id
+                      ? "text-purple-200"
+                      : selectedTracks[track.id]
+                      ? "text-gray-400"
+                      : "text-gray-500 group-hover:text-gray-400"
+                  }`}>
                     {formatDuration(track.duration_ms)}
                   </p>
                 </div>
+                {/* Right-side selection indicator for current track */}
+                {currentTrackId === track.id && (
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-purple-500 shadow-lg animate-pulse">
+                    <svg
+                      className="h-4 w-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -261,7 +302,7 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
 
         {/* YouTube Search Panel - Premium Design */}
         <div className="space-y-6">
-          <h3 className="text-xl font-medium text-neutral-900">
+          <h3 className="text-xl font-medium text-white">
             YouTube Matches
           </h3>
           {currentTrack ? (
@@ -274,9 +315,9 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
             />
           ) : (
             <div className="glass rounded-2xl p-12 text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/10">
                 <svg
-                  className="h-8 w-8 text-neutral-400"
+                  className="h-8 w-8 text-gray-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -289,10 +330,10 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
                   />
                 </svg>
               </div>
-              <h4 className="mb-2 text-lg font-medium text-neutral-900">
+              <h4 className="mb-2 text-lg font-medium text-white">
                 Ready to Match
               </h4>
-              <p className="mx-auto max-w-sm leading-relaxed text-neutral-500">
+              <p className="mx-auto max-w-sm leading-relaxed text-gray-400">
                 Select a track from your Spotify library to find YouTube matches
                 and start building your collection
               </p>
@@ -303,28 +344,28 @@ export function TrackMatcher({ tracks, title, isLoading }: TrackMatcherProps) {
 
       {/* Premium Action Bar */}
       {Object.keys(selectedTracks).length > 0 && (
-        <div className="glass animate-slide-in rounded-2xl border border-neutral-200/50 p-6 shadow-sm">
+        <div className="glass animate-slide-in rounded-2xl border border-white/20 p-6 shadow-2xl backdrop-blur-xl">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <div className="text-lg font-medium text-neutral-900">
+              <div className="text-lg font-medium text-white">
                 {Object.keys(selectedTracks).length} track
                 {Object.keys(selectedTracks).length === 1 ? "" : "s"} ready
               </div>
-              <div className="text-sm text-neutral-600">
+              <div className="text-sm text-gray-400">
                 Matched and ready for download
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setSelectedTracks({})}
-                className="rounded-xl border border-neutral-200 bg-white px-6 py-3 text-sm font-medium text-neutral-600 transition-all duration-200 hover:border-neutral-300 hover:bg-neutral-50 focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:outline-none"
+                className="rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm px-6 py-3 text-sm font-medium text-gray-300 transition-all duration-200 hover:border-white/30 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
               >
                 Clear All
               </button>
               <button
                 onClick={handleDownload}
                 disabled={downloadMutation.isPending}
-                className="flex items-center space-x-2 rounded-xl bg-neutral-900 px-6 py-3 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:bg-neutral-800 focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex items-center space-x-2 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:from-purple-600 hover:to-blue-600 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {downloadMutation.isPending ? (
                   <>

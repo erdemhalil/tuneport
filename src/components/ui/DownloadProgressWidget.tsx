@@ -96,14 +96,14 @@ export function DownloadProgressWidget() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "text-emerald-600";
+        return "text-emerald-400";
       case "failed":
-        return "text-red-500";
+        return "text-red-400";
       case "active":
       case "waiting":
-        return "text-blue-500";
+        return "text-blue-400";
       default:
-        return "text-neutral-500";
+        return "text-neutral-400";
     }
   };
 
@@ -118,9 +118,9 @@ export function DownloadProgressWidget() {
     switch (status) {
       case "completed":
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20">
             <svg
-              className="h-3 w-3 text-emerald-600"
+              className="h-3 w-3 text-emerald-400"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -134,9 +134,9 @@ export function DownloadProgressWidget() {
         );
       case "failed":
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-red-100">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500/20">
             <svg
-              className="h-3 w-3 text-red-500"
+              className="h-3 w-3 text-red-400"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -150,9 +150,9 @@ export function DownloadProgressWidget() {
         );
       case "active":
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20">
             <svg
-              className="h-3 w-3 animate-spin text-blue-500"
+              className="h-3 w-3 animate-spin text-blue-400"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -166,7 +166,7 @@ export function DownloadProgressWidget() {
         );
       default:
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-100">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-500/20">
             <svg
               className="h-3 w-3 text-neutral-400"
               fill="currentColor"
@@ -196,20 +196,20 @@ export function DownloadProgressWidget() {
       <div className="animate-scale-in fixed right-6 bottom-6 z-50">
         <button
           onClick={() => setIsMinimized(false)}
-          className="glass group flex items-center justify-between w-80 rounded-2xl border border-neutral-200/50 px-6 py-4 shadow-lg transition-all duration-200 hover:shadow-xl hover:border-blue-200/60"
+          className="glass group flex items-center justify-between w-80 rounded-2xl border border-white/20 px-6 py-4 shadow-lg transition-all duration-200 hover:shadow-xl hover:border-purple-400/40"
         >
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <div className="h-4 w-4 animate-pulse rounded-full bg-blue-500"></div>
+              <div className="h-4 w-4 animate-pulse rounded-full bg-blue-400"></div>
               {activeJobs.length > 0 && (
                 <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-emerald-400"></div>
               )}
             </div>
             <div className="space-y-0.5">
-              <div className="text-sm font-medium text-neutral-900">
+              <div className="text-sm font-medium text-white">
                 Downloads
               </div>
-              <div className="text-xs text-neutral-500">
+              <div className="text-xs text-neutral-300">
                 {activeJobs.length > 0
                   ? `${activeJobs.length} active`
                   : `${jobs.length} total`}
@@ -217,11 +217,11 @@ export function DownloadProgressWidget() {
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+            <span className="text-xs font-medium text-purple-300 bg-purple-500/20 px-2 py-1 rounded-full">
               Expand
             </span>
             <svg
-              className="h-5 w-5 text-blue-500 transition-colors group-hover:text-blue-600"
+              className="h-5 w-5 text-purple-400 transition-colors group-hover:text-purple-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -241,33 +241,33 @@ export function DownloadProgressWidget() {
 
   return (
     <div className="animate-scale-in fixed right-6 bottom-6 z-50 w-96">
-      <div className="glass overflow-hidden rounded-3xl border border-neutral-200/50 shadow-2xl">
+      <div className="glass overflow-hidden rounded-3xl border border-white/20 shadow-2xl">
         {/* Premium Header */}
-        <div className="flex items-center justify-between border-b border-neutral-200/50 bg-white/60 px-6 py-5">
+        <div className="flex items-center justify-between border-b border-white/20 bg-white/10 px-6 py-5">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
-                <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20">
+                <svg className="h-5 w-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
               </div>
               {activeJobs.length > 0 && (
-                <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-400 border-2 border-white"></div>
+                <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-400 border-2 border-white/20"></div>
               )}
             </div>
             <div className="space-y-1">
-              <h3 className="text-lg font-semibold text-neutral-900">Downloads</h3>
-              <div className="text-sm text-neutral-500">
+              <h3 className="text-lg font-semibold text-white">Downloads</h3>
+              <div className="text-sm text-neutral-300">
                 {activeJobs.length > 0 && (
-                  <span className="text-blue-600 font-medium">{activeJobs.length} active</span>
+                  <span className="text-blue-400 font-medium">{activeJobs.length} active</span>
                 )}
                 {activeJobs.length > 0 && completedJobs.length > 0 && <span> • </span>}
                 {completedJobs.length > 0 && (
-                  <span className="text-emerald-600 font-medium">{completedJobs.length} completed</span>
+                  <span className="text-emerald-400 font-medium">{completedJobs.length} completed</span>
                 )}
                 {(activeJobs.length > 0 || completedJobs.length > 0) && failedJobs.length > 0 && <span> • </span>}
                 {failedJobs.length > 0 && (
-                  <span className="text-red-500 font-medium">{failedJobs.length} failed</span>
+                  <span className="text-red-400 font-medium">{failedJobs.length} failed</span>
                 )}
               </div>
             </div>
@@ -276,7 +276,7 @@ export function DownloadProgressWidget() {
             {completedJobs.length > 0 && (
               <button
                 onClick={clearCompleted}
-                className="inline-flex items-center justify-center rounded-xl bg-neutral-100 p-2.5 text-neutral-600 transition-all duration-200 hover:bg-neutral-200 hover:text-neutral-800"
+                className="inline-flex items-center justify-center rounded-xl bg-white/10 p-2.5 text-neutral-300 transition-all duration-200 hover:bg-white/20 hover:text-white"
                 title="Clear completed downloads"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,7 +286,7 @@ export function DownloadProgressWidget() {
             )}
             <button
               onClick={() => setIsMinimized(true)}
-              className="inline-flex items-center justify-center rounded-xl bg-neutral-100 p-2.5 text-neutral-600 transition-all duration-200 hover:bg-neutral-200 hover:text-neutral-800"
+              className="inline-flex items-center justify-center rounded-xl bg-white/10 p-2.5 text-neutral-300 transition-all duration-200 hover:bg-white/20 hover:text-white"
               title="Minimize downloads"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -299,7 +299,7 @@ export function DownloadProgressWidget() {
         {/* Premium Jobs List */}
         <div className={`max-h-[500px] overflow-y-auto ${isExpanded ? "max-h-none" : ""}`}>
           {jobs.map((job) => (
-            <div key={job.jobId} className="border-b border-neutral-100/50 last:border-b-0">
+            <div key={job.jobId} className="border-b border-white/10 last:border-b-0">
               <div className="space-y-4 p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 flex-1 min-w-0">
@@ -314,14 +314,14 @@ export function DownloadProgressWidget() {
                           alt={`${job.trackName} album art`}
                           width={48}
                           height={48}
-                          className="h-12 w-12 rounded-lg object-cover shadow-sm border border-neutral-200/50"
+                          className="h-12 w-12 rounded-lg object-cover shadow-sm border border-white/20"
                           onError={(e) => {
                             // Fallback if image fails to load
                             e.currentTarget.style.display = 'none';
                           }}
                         />
                       ) : (
-                        <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-neutral-200 to-neutral-300 border border-neutral-200/50 flex items-center justify-center">
+                        <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-white/10 to-white/5 border border-white/20 flex items-center justify-center">
                           <svg className="h-6 w-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                           </svg>
@@ -329,10 +329,10 @@ export function DownloadProgressWidget() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="truncate text-base font-medium text-neutral-900">
+                      <h4 className="truncate text-base font-medium text-white">
                         {job.trackName}
                       </h4>
-                      <p className="truncate text-sm text-neutral-600 mt-1">
+                      <p className="truncate text-sm text-neutral-300 mt-1">
                         {job.artistName}
                       </p>
                     </div>
@@ -347,7 +347,7 @@ export function DownloadProgressWidget() {
                             job.artistName,
                           )
                         }
-                        className="inline-flex items-center justify-center rounded-xl bg-blue-500 p-2.5 text-white shadow-sm transition-all duration-200 hover:bg-blue-600 hover:shadow-md"
+                        className="inline-flex items-center justify-center rounded-xl bg-purple-500 p-2.5 text-white shadow-sm transition-all duration-200 hover:bg-purple-400 hover:shadow-md"
                         title="Download file"
                       >
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -357,7 +357,7 @@ export function DownloadProgressWidget() {
                     )}
                     <button
                       onClick={() => removeJob(job.jobId)}
-                      className="inline-flex items-center justify-center rounded-xl bg-neutral-100 p-2.5 text-neutral-600 transition-all duration-200 hover:bg-red-100 hover:text-red-600"
+                      className="inline-flex items-center justify-center rounded-xl bg-white/10 p-2.5 text-neutral-300 transition-all duration-200 hover:bg-red-500/20 hover:text-red-400"
                       title="Remove download"
                     >
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -370,16 +370,16 @@ export function DownloadProgressWidget() {
                 {/* Premium Progress Bar */}
                 {job.status === "active" && (
                     <div className="space-y-3">
-                      <div className="relative h-3 w-full overflow-hidden rounded-full bg-neutral-200">
+                      <div className="relative h-3 w-full overflow-hidden rounded-full bg-white/10">
                         <div
-                          className={`progress-bar absolute top-0 left-0 h-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 ${getProgressClass(job.progress)}`}
+                          className={`progress-bar absolute top-0 left-0 h-3 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-300 ${getProgressClass(job.progress)}`}
                         />
                       </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-semibold text-blue-600">
+                      <span className="text-sm font-semibold text-purple-400">
                         {Math.round(job.progress)}%
                       </span>
-                      <span className="text-sm text-neutral-500 capitalize bg-neutral-100 px-2 py-1 rounded-md">
+                      <span className="text-sm text-neutral-300 capitalize bg-white/10 px-2 py-1 rounded-md">
                         {job.status}
                       </span>
                     </div>
@@ -397,7 +397,7 @@ export function DownloadProgressWidget() {
                   </span>
                   {job.status === "failed" && (
                     <span
-                      className="max-w-32 truncate text-sm text-red-500 bg-red-50 px-2 py-1 rounded-md"
+                      className="max-w-32 truncate text-sm text-red-400 bg-red-500/20 px-2 py-1 rounded-md"
                       title={job.failedReason ?? job.error ?? "Failed"}
                     >
                       {job.failedReason ?? job.error ?? "Error occurred"}
@@ -411,10 +411,10 @@ export function DownloadProgressWidget() {
 
         {/* Premium Footer */}
         {jobs.length > 3 && (
-          <div className="border-t border-neutral-200/50 bg-white/50 px-6 py-3">
+          <div className="border-t border-white/20 bg-white/5 px-6 py-3">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="w-full text-center text-xs font-medium text-neutral-600 transition-colors hover:text-neutral-900"
+              className="w-full text-center text-xs font-medium text-neutral-300 transition-colors hover:text-white"
             >
               {isExpanded ? "Show less" : `Show all ${jobs.length} downloads`}
             </button>

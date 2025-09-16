@@ -69,24 +69,49 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Tuneport — Music, Reimagined</title>
+        <title>Tuneport</title>
         <meta
           name="description"
           content="Transform your Spotify library into something extraordinary"
         />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/tuneport.png" type="image/png" sizes="32x32" />
+        <link rel="icon" href="/tuneport.png" type="image/png" sizes="16x16" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       {sessionData?.user ? (
-        // Music Library View - Premium authenticated experience
-        <div className="min-h-screen bg-gradient-to-br from-white via-neutral-50 to-neutral-100">
-          {/* Premium Header - Glass effect with minimal design */}
-          <header className="glass sticky top-0 z-50 border-b border-neutral-200/50">
+        // Music Library View - Modern Dark Theme
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0">
+            <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-purple-500/5 blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-blue-500/5 blur-3xl animate-pulse delay-1000"></div>
+            <div className="absolute top-1/2 left-1/2 h-64 w-64 rounded-full bg-pink-500/5 blur-3xl animate-pulse delay-500"></div>
+          </div>
+
+          {/* Floating Music Notes Animation */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-20 left-10 animate-bounce delay-300">
+              <div className="text-purple-400/20 text-4xl">♪</div>
+            </div>
+            <div className="absolute top-40 right-20 animate-bounce delay-700">
+              <div className="text-blue-400/20 text-3xl">♫</div>
+            </div>
+            <div className="absolute bottom-32 left-20 animate-bounce delay-1000">
+              <div className="text-pink-400/20 text-5xl">♬</div>
+            </div>
+            <div className="absolute bottom-20 right-10 animate-bounce delay-500">
+              <div className="text-purple-400/20 text-4xl">♪</div>
+            </div>
+          </div>
+
+          {/* Premium Header - Glass effect with dark theme */}
+          <header className="glass sticky top-0 z-50 border-b border-white/10 backdrop-blur-xl">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
               <div className="flex h-20 items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="h-8 w-2 rounded-full bg-gradient-to-b from-blue-500 to-blue-600"></div>
-                  <h1 className="text-2xl font-light tracking-tight text-neutral-900">
+                  <div className="h-8 w-2 rounded-full bg-gradient-to-b from-purple-500 to-blue-500"></div>
+                  <h1 className="text-2xl font-light tracking-tight text-white">
                     Tuneport
                   </h1>
                 </div>
@@ -100,21 +125,21 @@ export default function Home() {
                           alt="Profile"
                           width={40}
                           height={40}
-                          className="rounded-full shadow-sm ring-2 ring-white"
+                          className="rounded-full shadow-lg ring-2 ring-white/20"
                         />
-                        <div className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-400"></div>
+                        <div className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-slate-900 bg-emerald-400"></div>
                       </div>
                     )}
                     <div className="hidden sm:block">
-                      <span className="text-sm font-medium text-neutral-900">
+                      <span className="text-sm font-medium text-white">
                         {sessionData.user.name}
                       </span>
-                      <div className="text-xs text-neutral-500">Connected</div>
+                      <div className="text-xs text-gray-400">Connected</div>
                     </div>
                   </div>
                   <button
                     onClick={() => void signOut()}
-                    className="rounded-xl px-4 py-2 text-sm font-medium text-neutral-600 transition-all duration-200 hover:bg-neutral-50 hover:text-neutral-900 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    className="rounded-xl px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
                   >
                     Sign out
                   </button>
@@ -124,7 +149,7 @@ export default function Home() {
           </header>
 
           {/* Main Content - Generous spacing for premium feel */}
-          <main className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
+          <main className="relative mx-auto max-w-7xl px-6 py-12 lg:px-8">
             <div className="space-y-16">
               {/* Liked Songs Section */}
               <section className="animate-fade-in space-y-8">
@@ -136,13 +161,13 @@ export default function Home() {
 
                 {/* Premium Pagination Controls */}
                 {totalPages > 1 && (
-                  <div className="glass flex items-center justify-between rounded-2xl p-6 shadow-sm">
-                    <div className="text-sm font-medium text-neutral-600">
-                      <span className="text-neutral-900">
+                  <div className="glass flex items-center justify-between rounded-2xl p-6 shadow-2xl border border-white/10 backdrop-blur-xl">
+                    <div className="text-sm font-medium text-gray-300">
+                      <span className="text-white">
                         {currentPage + 1}
                       </span>{" "}
                       of {totalPages}
-                      <span className="ml-2 text-neutral-500">
+                      <span className="ml-2 text-gray-400">
                         • {likedSongsData?.total ?? 0} songs
                       </span>
                     </div>
@@ -150,7 +175,7 @@ export default function Home() {
                       <button
                         onClick={goToPrevPage}
                         disabled={!hasPrevPage}
-                        className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-600 transition-all duration-200 hover:border-neutral-300 hover:bg-neutral-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+                        className="inline-flex items-center rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:border-white/30 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         <svg
                           className="mr-2 h-4 w-4"
@@ -184,10 +209,10 @@ export default function Home() {
                               <button
                                 key={pageNum}
                                 onClick={() => goToPage(pageNum)}
-                                className={`h-10 w-10 rounded-xl text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none ${
+                                className={`h-10 w-10 rounded-xl text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none ${
                                   pageNum === currentPage
-                                    ? "bg-blue-500 text-white shadow-md"
-                                    : "border border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50"
+                                    ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg"
+                                    : "border border-white/20 bg-white/5 backdrop-blur-sm text-gray-300 hover:border-white/30 hover:bg-white/10 hover:text-white"
                                 }`}
                               >
                                 {pageNum + 1}
@@ -200,7 +225,7 @@ export default function Home() {
                       <button
                         onClick={goToNextPage}
                         disabled={!hasNextPage}
-                        className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-600 transition-all duration-200 hover:border-neutral-300 hover:bg-neutral-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+                        className="inline-flex items-center rounded-xl border border-white/20 bg-white/5 backdrop-blur-sm px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:border-white/30 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         Next
                         <svg
@@ -226,14 +251,14 @@ export default function Home() {
               {selectedPlaylistId && playlistTracksData && (
                 <section className="animate-fade-in space-y-8">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-3xl font-light tracking-tight text-neutral-900">
+                    <h2 className="text-3xl font-light tracking-tight text-white">
                       {playlistsData?.playlists.find(
                         (p) => p.id === selectedPlaylistId,
                       )?.name ?? "Playlist"}
                     </h2>
                     <button
                       onClick={() => setSelectedPlaylistId(null)}
-                      className="inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium text-neutral-600 transition-all duration-200 hover:bg-neutral-50 hover:text-neutral-900 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                      className="inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
                     >
                       <svg
                         className="mr-2 h-4 w-4"
@@ -272,83 +297,109 @@ export default function Home() {
           </main>
         </div>
       ) : (
-        // Premium Landing Page - Swiss-inspired minimal design
-        <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-white via-neutral-50 to-neutral-100 p-6">
-          <div className="animate-scale-in w-full max-w-lg space-y-12">
-            {/* Premium Brand Identity */}
-            <div className="space-y-6 text-center">
-              <div className="mb-8 flex items-center justify-center space-x-3">
-                <div className="h-12 w-3 rounded-full bg-gradient-to-b from-blue-500 to-blue-600 shadow-sm"></div>
-                <h1 className="text-5xl font-light tracking-tight text-neutral-900">
-                  Tuneport
-                </h1>
-              </div>
+        // Modern Hero Landing Page with Icon Integration
+        <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0">
+            <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-purple-500/10 blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl animate-pulse delay-1000"></div>
+            <div className="absolute top-1/2 left-1/2 h-64 w-64 rounded-full bg-pink-500/10 blur-3xl animate-pulse delay-500"></div>
+          </div>
 
-              <div className="space-y-3">
-                <p className="text-xl leading-relaxed font-light text-neutral-700">
-                  Transform your music library into something extraordinary
-                </p>
-                <p className="mx-auto max-w-md text-sm leading-relaxed text-neutral-500">
-                  Connect your Spotify account to discover, organize, and
-                  experience your music in entirely new ways
-                </p>
-              </div>
+          {/* Floating Music Notes Animation */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute top-20 left-10 animate-bounce delay-300">
+              <div className="text-purple-400/30 text-4xl">♪</div>
             </div>
+            <div className="absolute top-40 right-20 animate-bounce delay-700">
+              <div className="text-blue-400/30 text-3xl">♫</div>
+            </div>
+            <div className="absolute bottom-32 left-20 animate-bounce delay-1000">
+              <div className="text-pink-400/30 text-5xl">♬</div>
+            </div>
+            <div className="absolute bottom-20 right-10 animate-bounce delay-500">
+              <div className="text-purple-400/30 text-4xl">♪</div>
+            </div>
+          </div>
 
-            {/* Premium Auth Card */}
-            <AuthShowcase />
-
-            {/* Minimal feature highlights */}
-            <div className="grid grid-cols-3 gap-8 border-t border-neutral-200 pt-8">
-              <div className="space-y-2 text-center">
-                <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-                  <svg
-                    className="h-4 w-4 text-blue-600"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-                  </svg>
+          <div className="relative z-10 flex min-h-screen items-center justify-center p-6">
+            <div className="w-full max-w-md space-y-8">
+              {/* Hero Section with Icon */}
+              <div className="text-center space-y-6">
+                {/* Project Icon - Prominent Display */}
+                <div className="flex justify-center">
+                  <div className="relative">
+                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-purple-500 to-blue-500 blur-2xl opacity-60 animate-pulse"></div>
+                    <div className="relative rounded-3xl bg-gradient-to-r from-purple-600 to-blue-600 p-6 shadow-2xl">
+                      <Image
+                        src="/tuneport.png"
+                        alt="Tuneport Logo"
+                        width={120}
+                        height={120}
+                        className="rounded-2xl"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="text-xs font-medium text-neutral-600">
-                  Secure
+
+                {/* Brand Name with Gradient */}
+                <div className="space-y-2">
+                  <h1 className="text-6xl font-bold bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
+                    Tuneport
+                  </h1>
+                  <div className="h-1 w-24 mx-auto rounded-full bg-gradient-to-r from-purple-500 to-blue-500"></div>
+                </div>
+
+                {/* Tagline */}
+                <div className="space-y-3">
+                  <p className="text-xl font-light text-gray-300 leading-relaxed">
+                    Transform your Spotify library into
+                    <span className="font-semibold text-white"> downloadable MP3s</span>
+                  </p>
+                  <p className="text-sm text-gray-400 leading-relaxed max-w-sm mx-auto">
+                    Connect your Spotify account and turn your favorite tracks into high-quality downloads with just a few clicks
+                  </p>
                 </div>
               </div>
-              <div className="space-y-2 text-center">
-                <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100">
-                  <svg
-                    className="h-4 w-4 text-emerald-600"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+
+              {/* Enhanced Auth Card */}
+              <AuthShowcase />
+
+              {/* Feature Grid with Icons */}
+              <div className="grid grid-cols-3 gap-6 pt-4">
+                <div className="group text-center space-y-3 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-emerald-500 shadow-lg group-hover:scale-110 transition-transform">
+                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="text-xs font-medium text-gray-300">Lightning Fast</div>
                 </div>
-                <div className="text-xs font-medium text-neutral-600">
-                  Smart
+
+                <div className="group text-center space-y-3 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg group-hover:scale-110 transition-transform">
+                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <div className="text-xs font-medium text-gray-300">Secure & Private</div>
+                </div>
+
+                <div className="group text-center space-y-3 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg group-hover:scale-110 transition-transform">
+                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </div>
+                  <div className="text-xs font-medium text-gray-300">High Quality</div>
                 </div>
               </div>
-              <div className="space-y-2 text-center">
-                <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-purple-100">
-                  <svg
-                    className="h-4 w-4 text-purple-600"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="text-xs font-medium text-neutral-600">
-                  Simple
-                </div>
+
+              {/* Footer */}
+              <div className="text-center pt-4">
+                <p className="text-xs text-gray-500">
+                  Built with Next.js • Powered by Spotify & YouTube
+                </p>
               </div>
             </div>
           </div>
@@ -362,7 +413,7 @@ function AuthShowcase() {
   const { data: sessionData } = useSession();
 
   return (
-    <div className="glass space-y-6 rounded-3xl border border-neutral-200/50 p-8 shadow-lg">
+    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl">
       {sessionData?.user ? (
         <div className="space-y-6 text-center">
           <div className="flex flex-col items-center space-y-4">
@@ -373,25 +424,25 @@ function AuthShowcase() {
                   alt="Profile"
                   width={80}
                   height={80}
-                  className="rounded-full shadow-md ring-4 ring-white"
+                  className="rounded-full shadow-lg ring-4 ring-white/20"
                 />
-                <div className="absolute -right-1 -bottom-1 h-6 w-6 rounded-full border-3 border-white bg-emerald-400 shadow-sm"></div>
+                <div className="absolute -right-1 -bottom-1 h-6 w-6 rounded-full border-3 border-slate-900 bg-green-400 shadow-lg"></div>
               </div>
             )}
             <div className="space-y-1">
-              <h3 className="text-xl font-medium text-neutral-900">
+              <h3 className="text-xl font-semibold text-white">
                 Welcome back
               </h3>
-              <p className="font-medium text-neutral-600">
+              <p className="font-medium text-gray-300">
                 {sessionData.user.name}
               </p>
-              <p className="text-sm text-neutral-500">Your music awaits</p>
+              <p className="text-sm text-gray-400">Ready to download your music?</p>
             </div>
           </div>
 
           <button
             onClick={() => void signOut()}
-            className="w-full rounded-2xl bg-neutral-900 px-6 py-4 font-medium text-white shadow-sm transition-all duration-200 hover:bg-neutral-800 focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:outline-none"
+            className="w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:from-red-700 hover:to-red-800 hover:shadow-xl focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
           >
             Sign out
           </button>
@@ -399,21 +450,20 @@ function AuthShowcase() {
       ) : (
         <div className="space-y-6 text-center">
           <div className="space-y-3">
-            <h2 className="text-2xl font-medium text-neutral-900">
+            <h2 className="text-2xl font-bold text-white">
               Connect with Spotify
             </h2>
-            <p className="leading-relaxed text-neutral-600">
-              Securely link your Spotify account to unlock your personalized
-              music experience
+            <p className="leading-relaxed text-gray-300">
+              Link your Spotify account to start downloading your favorite tracks
             </p>
           </div>
 
           <button
             onClick={() => void signIn("spotify")}
-            className="group flex w-full items-center justify-center space-x-3 rounded-2xl bg-neutral-900 px-6 py-4 font-medium text-white shadow-sm transition-all duration-200 hover:bg-neutral-800 focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:outline-none"
+            className="group flex w-full items-center justify-center space-x-4 rounded-2xl bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:from-green-600 hover:to-green-700 hover:shadow-xl hover:scale-105 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
           >
             <svg
-              className="h-5 w-5 transition-transform group-hover:scale-105"
+              className="h-6 w-6 transition-transform group-hover:scale-110"
               viewBox="0 0 24 24"
               fill="currentColor"
             >
@@ -422,9 +472,8 @@ function AuthShowcase() {
             <span>Continue with Spotify</span>
           </button>
 
-          <p className="text-xs leading-relaxed text-neutral-400">
-            By connecting, you agree to let Tuneport access your Spotify library
-            and playlists
+          <p className="text-xs leading-relaxed text-gray-400">
+            We only access your music library and playlists. Your data stays secure and private.
           </p>
         </div>
       )}

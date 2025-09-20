@@ -7,158 +7,93 @@
  * need to use are documented accordingly near the end.
  */
 import { initTRPC, TRPCError } from "@trpc/server";
-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
-import { type Session } from "next-auth";
 import superjson from "superjson";
 import { ZodError } from "zod";
-
-import { getServerSession } from "next-auth/next";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { getServerSession } from "next-auth";
 import { authConfig } from "~/server/auth/config";
-import "~/server/init";
-
-/**
- * 1. CONTEXT
- *
- * This section defines the "contexts" that are available in the backend API.
- *
- * These allow you to access things when processing a request, like the database, the session, etc.
- */
 
 interface CreateContextOptions {
-  session: Session | null;
+  req: NextApiRequest;
+  res: NextApiResponse;
 }
 
 /**
- * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
- * it from here.
+ * 1. the way TypeScript describes this function. The shape isn't important as long as:
+ *    - the function determines the `req`'s session
+ *    - you keep the TsSession type
  *
- * Examples of things you may need it for:
- * - testing, so we don't have to mock Next.js' req/res
- * - tRPC's `createSSGHelpers`, where we don't have req/res
+ * 2. your `getServerSession` call in it
+ * 3. your `req` is a `NextRequest`
  *
- * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
+ * @see https://trpc.io/docs/server/context#server-context
  */
-const createInnerTRPCContext = ({ session }: CreateContextOptions) => {
+export async function createContext(opts: CreateContextOptions) {
+  const session = await getServerSession(opts.req, opts.res, authConfig);
+
   return {
     session,
   };
-};
+}
+
+export type Context = Awaited<ReturnType<typeof createContext>>;
 
 /**
- * This is the actual context you will use in your router. It will be used to process every request
- * that goes through your tRPC endpoint.
+ * Initialization of tRPC for a NextJS app
  *
- * @see https://trpc.io/docs/context
+ * @see https://trpc.io/docs/v10/nextjs
  */
-export const createTRPCContext = async ({
-  req,
-  res,
-}: CreateNextContextOptions) => {
-  // Get the session from the server using the getServerSession wrapper function
-  const session = (await (getServerSession as any)(
-    req,
-    res,
-    authConfig,
-  )) as Session | null;
-
-  return createInnerTRPCContext({
-    session,
-  });
-};
-
-/**
- * 2. INITIALIZATION
- *
- * This is where the tRPC API is initialized, connecting the context and transformer. We also parse
- * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
- * errors on the backend.
- */
-
-const t = initTRPC.context<typeof createTRPCContext>().create({
+const t = initTRPC.context<Context>().create({
   transformer: superjson,
-  errorFormatter({ shape, error }) {
+  errorFormatter(opts) {
+    const { shape } = opts;
+    const { code } = shape;
+
+    const isAppErrorCode =
+      String(code).startsWith("INTERNAL_SERVER_ERROR") ||
+      String(code).startsWith("BAD_REQUEST") ||
+      String(code).startsWith("UNAUTHORIZED") ||
+      String(code).startsWith("FORBIDDEN") ||
+      String(code).startsWith("NOT_FOUND") ||
+      String(code).startsWith("TOO_MANY_REQUESTS") ||
+      String(code).startsWith("METHOD_NOT_SUPPORTED") ||
+      String(code).startsWith("PAYLOAD_TOO_LARGE") ||
+      String(code).startsWith("UNPROCESSABLE_CONTENT");
+
     return {
       ...shape,
       data: {
         ...shape.data,
         zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
+          opts.error.code === "BAD_REQUEST" && opts.error.cause instanceof ZodError
+            ? opts.error.cause.flatten()
+            : null,
       },
+      ...(isAppErrorCode && {
+        message: "An unexpected error occurred, please try again later. If this issue persists, please contact support.",
+      }),
     };
   },
 });
 
 /**
- * Create a server-side caller.
- *
- * @see https://trpc.io/docs/server/server-side-calls
- */
-export const createCallerFactory = t.createCallerFactory;
-
-/**
- * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
- *
- * These are the pieces you use to build your tRPC API. You should import these a lot in the
- * "/src/server/api/routers" directory.
- */
-
-/**
- * This is how you create new routers and sub-routers in your tRPC API.
- *
- * @see https://trpc.io/docs/router
+ * Export reusable router and procedure helpers
+ * that can be used throughout the router
+ * @see https://trpc.io/docs/v10/server/router-and-procedure-helpers
  */
 export const createTRPCRouter = t.router;
-
-/**
- * Middleware for timing procedure execution and adding an artificial delay in development.
- *
- * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
- * network latency that would occur in production but not in local development.
- */
-const timingMiddleware = t.middleware(async ({ next, path }) => {
-  const start = Date.now();
-
-  if (t._config.isDev) {
-    // artificial delay in dev
-    const waitMs = Math.floor(Math.random() * 400) + 100;
-    await new Promise((resolve) => setTimeout(resolve, waitMs));
-  }
-
-  const result = await next();
-
-  const end = Date.now();
-  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
-
-  return result;
-});
-
-/**
- * Public (unauthenticated) procedure
- *
- * This is the base piece you use to build new queries and mutations on your tRPC API. It does not
- * guarantee that a user querying is authorized, but you can still access user session data if they
- * are logged in.
- */
-export const publicProcedure = t.procedure.use(timingMiddleware);
-
-/**
- * Protected (authenticated) procedure
- *
- * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
- * the session is valid and guarantees `ctx.session.user` is not null.
- *
- * @see https://trpc.io/docs/procedures
- */
+export const publicProcedure = t.procedure;
 export const protectedProcedure = t.procedure
-  .use(timingMiddleware)
-  .use(({ ctx, next }) => {
-    if (!ctx.session?.user) {
+  .use(async ({ ctx, next }) => {
+    const { session } = ctx;
+
+    if (!session?.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
+
     return next({
       ctx: {
-        // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
+        session: session,
       },
     });
   });

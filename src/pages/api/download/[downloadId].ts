@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authConfig } from "~/server/auth/config";
-import { getDownloadedFile } from "~/server/queue/downloadQueue";
+import { getDownloadedFile } from "~/server/services/redisService";
 
 export const config = {
   api: {
@@ -19,9 +19,7 @@ export default async function handler(
 
   try {
     // Check authentication
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call
-    const session = await (getServerSession as any)(req, res, authConfig);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const session = await getServerSession(req, res, authConfig);
     if (!session?.user?.id) {
       console.log("❌ Authentication failed - no valid session");
       return res.status(401).json({ error: "Unauthorized" });

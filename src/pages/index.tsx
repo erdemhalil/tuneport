@@ -6,6 +6,7 @@ import { useState } from "react";
 import { api } from "~/utils/api";
 import { CollectionList } from "~/components/music/CollectionList";
 import { TrackMatcher } from "~/components/music/TrackMatcher";
+import type { Track } from "~/utils/types";
 
 export default function Home() {
   const { data: sessionData } = useSession();
@@ -118,7 +119,7 @@ export default function Home() {
                           height={40}
                           className="rounded-full shadow-lg ring-2 ring-white/20"
                         />
-                        <div className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-slate-900 bg-emerald-400"></div>
+                        <div className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full bg-emerald-400"></div>
                       </div>
                     )}
                     <div className="hidden sm:block">
@@ -180,7 +181,7 @@ export default function Home() {
                     collection={collectionsData.collections.find(
                       (c) => c.id === selectedCollectionId,
                     )!}
-                    tracks={collectionTracksData.tracks}
+                    tracks={collectionTracksData.tracks as Track[]}
                     isLoading={collectionTracksLoading}
                     showHeader={false}
                     currentPage={tracksPage}

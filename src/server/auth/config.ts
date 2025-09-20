@@ -8,6 +8,13 @@ interface SpotifyProfile {
   email?: string;
 }
 
+interface TokenResponse {
+  access_token: string;
+  expires_in: number;
+  refresh_token?: string;
+  token_type?: string;
+}
+
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
  * object and keep type safety.
@@ -110,7 +117,7 @@ export const authConfig: NextAuthOptions = {
           );
 
           if (response.ok) {
-            const data = await response.json();
+            const data = (await response.json()) as TokenResponse;
             token.accessToken = data.access_token;
             token.expiresAt = Date.now() + data.expires_in * 1000;
             // Spotify refresh tokens can be reused, so we keep the same refresh token

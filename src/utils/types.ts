@@ -7,8 +7,6 @@ export interface Collection {
   track_count: number;
   owner: string;
   type: 'liked_songs' | 'playlist';
-  // For playlists, this will be the playlist ID
-  // For liked songs, this can be a special identifier
 }
 
 export interface Track {
@@ -17,10 +15,64 @@ export interface Track {
   artists: string[];
   album: {
     name: string;
-    image?: string;
+    image: string | null;
   };
   duration_ms: number;
   explicit?: boolean;
   added_at?: string;
   spotify_url?: string;
+}
+
+export interface YouTubeSearchResult {
+  videoId: string;
+  title: string;
+  channel: string;
+  duration: string;
+  thumbnail: string;
+  confidence: number;
+  explicit: boolean;
+}
+
+export interface DownloadJob {
+  jobId: string;
+  videoId: string;
+  trackName: string;
+  artistName: string;
+  allArtists?: string[];
+  artwork?: string;
+  status: string;
+  progress: number;
+  result?: {
+    videoId: string;
+    trackName: string;
+    artistName: string;
+    downloadId: string;
+    fileSize: number;
+    duration: number;
+    success: boolean;
+    error?: string;
+  };
+  failedReason?: string;
+  error?: string;
+}
+
+export interface DownloadJobData {
+  videoId: string;
+  trackName: string;
+  artistName: string;
+  allArtists?: string[];
+  artwork?: string;
+  userId: string;
+  jobId: string;
+}
+
+export interface DownloadResult {
+  videoId: string;
+  trackName: string;
+  artistName: string;
+  downloadId: string;
+  fileSize: number;
+  duration: number;
+  success: boolean;
+  error?: string;
 }

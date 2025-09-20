@@ -27,9 +27,7 @@ export function PlaylistList({
           <h2 className="text-3xl font-light tracking-tight text-white">
             Your Playlists
           </h2>
-          <p className="text-gray-400">
-            Organizing your musical collections
-          </p>
+          <p className="text-gray-400">Organizing your musical collections</p>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -94,7 +92,7 @@ export function PlaylistList({
         {playlists.map((playlist) => (
           <div
             key={playlist.id}
-            className={`group glass animate-fade-in cursor-pointer rounded-2xl border border-white/20 p-6 transition-all duration-300 hover:border-white/30 hover:shadow-2xl backdrop-blur-xl`}
+            className={`group glass animate-fade-in cursor-pointer rounded-2xl border border-white/20 p-6 backdrop-blur-xl transition-all duration-300 hover:border-white/30 hover:shadow-2xl`}
             onClick={() => onPlaylistClick?.(playlist.id)}
           >
             {/* Playlist Cover */}
@@ -120,7 +118,7 @@ export function PlaylistList({
 
               {/* Hover overlay */}
               <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/20">
-                <div className="flex h-12 w-12 scale-0 transform items-center justify-center rounded-full bg-white/10 transition-all duration-300 group-hover:scale-100 group-hover:bg-white/20 backdrop-blur-sm">
+                <div className="flex h-12 w-12 scale-0 transform items-center justify-center rounded-full bg-white/10 backdrop-blur-sm transition-all duration-300 group-hover:scale-100 group-hover:bg-white/20">
                   <svg
                     className="h-6 w-6 text-white"
                     fill="currentColor"

@@ -6,28 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { api } from "~/utils/api";
-
-interface DownloadJob {
-  jobId: string;
-  videoId: string;
-  trackName: string;
-  artistName: string;
-  artwork?: string; // Spotify album artwork URL
-  status: string;
-  progress: number;
-  result?: {
-    videoId: string;
-    trackName: string;
-    artistName: string;
-    downloadId: string;
-    fileSize: number;
-    duration: number;
-    success: boolean;
-    error?: string;
-  };
-  failedReason?: string;
-  error?: string;
-}
+import type { DownloadJob } from "~/utils/types";
 
 interface DownloadContextType {
   jobs: DownloadJob[];
@@ -37,6 +16,7 @@ interface DownloadContextType {
       videoId: string;
       trackName: string;
       artistName: string;
+      allArtists?: string[];
       artwork?: string;
     }>,
   ) => void;
@@ -63,13 +43,23 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
 
   // Update jobs when status changes
   useEffect(() => {
-    if (statusQuery.data?.jobs) {
+    if (statusQuery.data) {
       setJobs((currentJobs) =>
         currentJobs.map((job) => {
-          const updatedJob = statusQuery.data.jobs.find(
+          const updatedJob = statusQuery.data.find(
             (j) => j.jobId === job.jobId,
           );
-          return updatedJob ? { ...job, ...updatedJob } : job;
+          if (updatedJob) {
+            return {
+              ...job,
+              status: updatedJob.status,
+              progress: updatedJob.progress,
+              result: updatedJob.result,
+              failedReason: updatedJob.failedReason,
+              error: updatedJob.error,
+            };
+          }
+          return job;
         }),
       );
     }
@@ -81,6 +71,7 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
       videoId: string;
       trackName: string;
       artistName: string;
+      allArtists?: string[];
       artwork?: string;
     }>,
   ) => {

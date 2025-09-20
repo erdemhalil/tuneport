@@ -1,7 +1,7 @@
 import { useState } from "react";
-import Image from "next/image";
 
 import { YouTubeSearch } from "./YouTubeSearch";
+import { TrackItem } from "./TrackItem";
 import { api } from "~/utils/api";
 import { useDownloads } from "~/contexts/DownloadContext";
 import type { Collection, Track } from "~/utils/types";
@@ -19,15 +19,15 @@ interface TrackMatcherProps {
   onPageChange?: (page: number) => void;
 }
 
-export function TrackMatcher({ 
-  collection, 
-  tracks, 
-  isLoading, 
+export function TrackMatcher({
+  collection,
+  tracks,
+  isLoading,
   showHeader = true,
   currentPage = 1,
   totalItems = 0,
   itemsPerPage = 50,
-  onPageChange
+  onPageChange,
 }: TrackMatcherProps) {
   const [selectedTracks, setSelectedTracks] = useState<Record<string, string>>(
     {},
@@ -43,16 +43,20 @@ export function TrackMatcher({
       const validJobs = data.jobs
         .filter((job) => job.jobId)
         .map((job) => {
-          // Find the corresponding track to get artwork
-          const track = tracks.find((t) => t.name === job.trackName && t.artists.includes(job.artistName));
+          // Find the corresponding track only for artwork
+          const track = tracks.find(
+            (t) => t.name === job.trackName && t.artists.includes(job.artistName),
+          );
           return {
-            jobId: job.jobId!,
+            jobId: job.jobId,
             videoId: job.videoId,
             trackName: job.trackName,
             artistName: job.artistName,
-            artwork: track?.album.image,
+            allArtists: job.allArtists ?? track?.artists ?? [job.artistName],
+            artwork: track?.album.image ?? undefined,
           };
         });
+      console.log("Valid jobs with allArtists:", validJobs.map(j => ({ trackName: j.trackName, allArtists: j.allArtists })));
       addJobs(validJobs);
     },
     onError: (error) => {
@@ -60,12 +64,6 @@ export function TrackMatcher({
       alert(`Download failed: ${error.message}`);
     },
   });
-
-  const formatDuration = (ms: number) => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
 
   const handleTrackSelect = (trackId: string) => {
     setCurrentTrackId(trackId);
@@ -101,7 +99,7 @@ export function TrackMatcher({
           trackName: track.name,
           artistName: track.artists[0] ?? "Unknown Artist",
           allArtists: track.artists, // Pass all artists from Spotify
-          artwork: track.album.image, // Pass Spotify album artwork
+          artwork: track.album.image ?? undefined, // Pass Spotify album artwork
         };
       })
       .filter((track): track is NonNullable<typeof track> => track !== null);
@@ -195,7 +193,7 @@ export function TrackMatcher({
       )}
 
       <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
-        {/* Spotify Tracks List - Premium Design */}
+        {/* Spotify Tracks List */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-medium text-white">Your Spotify Library</h3>
@@ -210,102 +208,13 @@ export function TrackMatcher({
 
           <div className="max-h-[600px] space-y-4 overflow-y-auto pr-3 pl-2 py-2">
             {tracks.map((track) => (
-              <div
+              <TrackItem
                 key={track.id}
-                className={`group glass relative flex cursor-pointer items-center space-x-4 rounded-2xl p-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
-                  currentTrackId === track.id
-                    ? "bg-gradient-to-r from-purple-500/50 to-blue-500/50 ring-2 ring-purple-300 ring-offset-2 ring-offset-slate-900 shadow-xl shadow-purple-500/30 scale-[1.02] border border-purple-300/50"
-                    : "hover:bg-white/15 hover:ring-1 hover:ring-white/30"
-                } ${selectedTracks[track.id] ? "bg-emerald-500/30 ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-900 shadow-lg shadow-emerald-500/20" : ""}`}
+                track={track}
+                isSelected={!!selectedTracks[track.id]}
+                isCurrent={currentTrackId === track.id}
                 onClick={() => handleTrackSelect(track.id)}
-              >
-                <div className="relative flex-shrink-0">
-                  {track.album.image && (
-                    <Image
-                      src={track.album.image}
-                      alt={track.album.name}
-                      width={56}
-                      height={56}
-                      className={`h-14 w-14 rounded-xl object-cover shadow-sm transition-all duration-200 ${
-                        currentTrackId === track.id 
-                          ? "ring-2 ring-purple-300 shadow-lg shadow-purple-500/30" 
-                          : ""
-                      }`}
-                    />
-                  )}
-                  {selectedTracks[track.id] && (
-                    <div className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
-                      <svg
-                        className="h-3 w-3 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                  )}
-                  {/* left indicator removed - replaced by right-side indicator below */}
-                </div>
-
-                <div className="min-w-0 flex-1 space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <h4 className={`truncate text-sm font-medium transition-colors ${
-                      currentTrackId === track.id 
-                        ? "text-white font-semibold" 
-                        : selectedTracks[track.id]
-                        ? "text-emerald-200"
-                        : "text-white group-hover:text-purple-300"
-                    }`}>
-                      {track.name}
-                    </h4>
-                    {track.explicit && (
-                      <span className="inline-flex items-center rounded-md bg-white/20 px-1.5 py-0.5 text-xs font-medium text-gray-300">
-                        E
-                      </span>
-                    )}
-                  </div>
-                  <p className={`truncate text-xs transition-colors ${
-                    currentTrackId === track.id
-                      ? "text-purple-100"
-                      : selectedTracks[track.id]
-                      ? "text-gray-300"
-                      : "text-gray-400 group-hover:text-gray-300"
-                  }`}>
-                    {track.artists.join(", ")} • {track.album.name}
-                  </p>
-                  <p className={`text-xs font-medium transition-colors ${
-                    currentTrackId === track.id
-                      ? "text-purple-200"
-                      : selectedTracks[track.id]
-                      ? "text-gray-400"
-                      : "text-gray-500 group-hover:text-gray-400"
-                  }`}>
-                    {formatDuration(track.duration_ms)}
-                  </p>
-                </div>
-                {/* Right-side selection indicator for current track */}
-                {currentTrackId === track.id && (
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-purple-500 shadow-lg animate-pulse">
-                    <svg
-                      className="h-4 w-4 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </div>
-                )}
-              </div>
+              />
             ))}
           </div>
 
@@ -321,7 +230,7 @@ export function TrackMatcher({
           )}
         </div>
 
-        {/* YouTube Search Panel - Premium Design */}
+        {/* YouTube Search Panel */}
         <div className="space-y-6">
           <h3 className="text-xl font-medium text-white">
             YouTube Matches
@@ -363,7 +272,7 @@ export function TrackMatcher({
         </div>
       </div>
 
-      {/* Premium Action Bar */}
+      {/* Action Bar */}
       {Object.keys(selectedTracks).length > 0 && (
         <div className="glass animate-slide-in rounded-2xl border border-white/20 p-6 shadow-2xl backdrop-blur-xl">
           <div className="flex items-center justify-between">

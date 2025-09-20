@@ -6,66 +6,78 @@
   </h1>
   
   <p style="font-size: 1.25rem; color: #6b7280; margin-bottom: 2rem;">
-    Transform your Spotify library into <strong>downloadable MP3s</strong>
+    Spotify to YouTube MP3 downloader
   </p>
 </div>
 
 ---
 
-Tuneport transforms your Spotify library into downloadable MP3s via YouTube. It's a personal music tool built with Next.js 15, tRPC, and NextAuth for Spotify authentication. The app queues downloads (BullMQ + Redis) and uses yt-dlp to fetch audio from YouTube.uneport
-
-Tuneport transforms your Spotify library into downloadable MP3s via YouTube. It’s a small personal app built with Next.js 15, tRPC, and NextAuth for Spotify authentication. The app queues downloads (BullMQ + Redis) and uses yt-dlp to fetch audio from YouTube.
+Tuneport connects your Spotify library to YouTube for high-quality MP3 downloads. Built with Next.js 15, tRPC, and BullMQ for queued processing.
 
 ## Features
 
-- 🎵 **Spotify Integration**: Connect your Spotify account and access your liked songs and playlists
-- ⚡ **Lightning Fast Downloads**: Queue and download multiple tracks simultaneously
-- 🎨 **Modern UI**: Beautiful dark theme with animated backgrounds and smooth interactions
-- 🔒 **Secure & Private**: Your data stays secure with NextAuth authentication
-- 📱 **Responsive Design**: Works perfectly on desktop and mobile devices
-- 🎯 **High Quality Audio**: Downloads in 320K MP3 format for the best quality
+- Spotify OAuth: Fetch liked songs & playlists
+- YouTube matching: Smart search by track/artist/duration
+- Batch queuing: Up to 50 tracks via BullMQ/Redis
+- Audio extraction: 320K MP3s with yt-dlp & ffmpeg
+- Responsive UI: Modern theme, progress tracking
+- Secure: NextAuth with PKCE
 
 ## Tech Stack
 
-- Next.js 15 (App + Pages hybrid)
-- NextAuth (Spotify OAuth)
-- tRPC for type-safe API
-- BullMQ + Redis for background downloads
-- yt-dlp for downloading and extracting audio
-- TypeScript, Tailwind CSS
+- Next.js 15 (hybrid routing)
+- tRPC + Zod + SuperJSON
+- NextAuth (Spotify)
+- BullMQ + Redis (jobs)
+- yt-dlp (downloads)
+- Tailwind CSS v4 + TypeScript
 
 ## Quickstart
 
-1. Copy `.env.example` to `.env` and fill in the required variables:
+1. Clone & install:
+   ```bash
+   git clone <repo> tuneport
+   cd tuneport
+   npm install
+   ```
 
-- AUTH_SECRET (use `npx auth secret`)
-- SPOTIFY_CLIENT_ID
-- SPOTIFY_CLIENT_SECRET
-- REDIS_HOST, REDIS_PORT, REDIS_PASSWORD (if needed)
+2. Setup `.env.local` from `.env.example`:
+   - `AUTH_SECRET`: `npx auth secret`
+   - Spotify: Client ID/Secret from [developer.spotify.com](https://developer.spotify.com/dashboard)
+   - YouTube: API key from [Google Console](https://console.cloud.google.com/apis/library/youtube.googleapis.com)
+   - Redis: Defaults to localhost:6379
 
-2. Install dependencies:
+3. Install tools:
+   - yt-dlp: `pip install yt-dlp`
+   - ffmpeg: Add to PATH
+   - Start Redis server
 
-```powershell
-npm install
-```
+4. Run:
+   ```bash
+   npm run dev
+   ```
+   Visit http://localhost:3000, auth with Spotify, and start downloading.
 
-3. Start the dev server:
+## Commands
 
-```powershell
-npm run dev
-```
+- `npm run dev` - Dev server (Turbopack)
+- `npm run build` - Production build
+- `npm run start` - Production server
+- `npm run check` - Lint + types
+- `npm run lint:fix` - Fix lint
+- `npm run format:write` - Format (Prettier/Tailwind)
 
-4. Start a Redis server and ensure `yt-dlp` is available on your PATH for downloads.
+## Structure
 
-## Useful Scripts
-
-- `npm run dev` - start dev server
-- `npm run build` - build for production
-- `npm run start` - start production server
-- `npm run check` - lint + typecheck
-- `npm run format:write` - format code
+- `src/pages/` - Pages & tRPC API
+- `src/server/` - Routers, services, queue/workers
+- `src/components/music/` - Track UI
+- `src/contexts/` - Download state
+- `~/` alias for src/
 
 ## Notes
 
-- The app uses server-side session handling and download jobs stored in Redis. For production, secure your Redis instance and set up a proper worker process for download jobs.
-- Ensure `yt-dlp` and `ffmpeg` are installed and accessible to the worker for reliable audio extraction.
+- Downloads: Auto-worker via `init.ts`; 90s timeout/job; Redis storage, serve via `/api/download/[id]`
+- Production: Secure Redis; separate worker; monitor queues
+- Gotchas: Hybrid auth (app router) vs tRPC (pages); explicit content filter in searches
+- Contribute: PRs welcome; follow ESLint/Prettier.

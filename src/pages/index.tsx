@@ -1,12 +1,19 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { api } from "~/utils/api";
 import { CollectionList } from "~/components/music/CollectionList";
 import { TrackMatcher } from "~/components/music/TrackMatcher";
 import type { Track } from "~/utils/types";
+
+type SpotifyCollectionTracksResponse = {
+  tracks: Track[];
+  total: number;
+  limit: number;
+  offset: number;
+};
 
 export default function Home() {
   const { data: sessionData } = useSession();
@@ -22,6 +29,9 @@ export default function Home() {
   const [tracksPage, setTracksPage] = useState(1);
   const TRACKS_PER_PAGE = 50;
 
+  // Cache for previous tracks data to prevent UI flicker during pagination
+  const [previousCollectionTracksData, setPreviousCollectionTracksData] = useState<SpotifyCollectionTracksResponse | null>(null);
+
   // Fetch collections (liked songs + playlists) with pagination
   const { data: collectionsData, isLoading: collectionsLoading } =
     api.spotify.collections.useQuery(
@@ -33,7 +43,10 @@ export default function Home() {
     );
 
   // Fetch collection tracks when a collection is selected with pagination
-  const { data: collectionTracksData, isLoading: collectionTracksLoading } =
+  const { 
+    data: collectionTracksData, 
+    isLoading: collectionTracksLoading 
+  } =
     api.spotify.collectionTracks.useQuery(
       {
         collectionId: selectedCollectionId!,
@@ -42,6 +55,22 @@ export default function Home() {
       },
       { enabled: !!sessionData?.user && !!selectedCollectionId },
     );
+
+  // Update cache when new data loads (not during loading)
+  useEffect(() => {
+    if (collectionTracksData && !collectionTracksLoading) {
+      setPreviousCollectionTracksData(collectionTracksData);
+    }
+  }, [collectionTracksData, collectionTracksLoading]);
+
+  // Determine data to pass: use current if available, else previous
+  const currentData = collectionTracksData ?? previousCollectionTracksData;
+  const tracksToPass = currentData?.tracks ?? [];
+  const totalToPass = currentData?.total ?? 0;
+
+  // Loading states
+  const isInitialLoading = collectionTracksLoading && previousCollectionTracksData === null;
+  const isPaginating = collectionTracksLoading && previousCollectionTracksData !== null;
 
   // Pagination handlers
   const handleCollectionsPageChange = (page: number) => {
@@ -52,10 +81,13 @@ export default function Home() {
     setTracksPage(page);
   };
 
-  // Reset tracks page when switching collections
+  // Reset tracks page and cache when switching collections
   const handleCollectionSelect = (collectionId: string | null) => {
     setSelectedCollectionId(collectionId);
     setTracksPage(1); // Reset to first page when switching collections
+    if (collectionId !== selectedCollectionId) {
+      setPreviousCollectionTracksData(null); // Clear cache for new collection
+    }
   };
 
   return (
@@ -144,7 +176,7 @@ export default function Home() {
           <main className="relative mx-auto max-w-7xl px-6 py-12 lg:px-8">
             <div className="space-y-16">
               {/* Selected Collection Tracks */}
-              {selectedCollectionId && collectionTracksData && collectionsData && (
+              {selectedCollectionId && collectionsData && (
                 <section className="animate-fade-in space-y-8">
                   <div className="flex items-center justify-between">
                     <div className="flex items-baseline gap-4">
@@ -154,7 +186,7 @@ export default function Home() {
                         )?.name ?? "Collection"}
                       </h2>
                       <span className="text-sm text-gray-400">
-                        {collectionTracksData.total} {collectionTracksData.total === 1 ? 'track' : 'tracks'}
+                        {totalToPass} {totalToPass === 1 ? 'track' : 'tracks'}
                       </span>
                     </div>
                     <button
@@ -181,11 +213,12 @@ export default function Home() {
                     collection={collectionsData.collections.find(
                       (c) => c.id === selectedCollectionId,
                     )!}
-                    tracks={collectionTracksData.tracks as Track[]}
-                    isLoading={collectionTracksLoading}
+                    tracks={tracksToPass}
+                    isLoading={isInitialLoading}
+                    isPaginating={isPaginating}
                     showHeader={false}
                     currentPage={tracksPage}
-                    totalItems={collectionTracksData.total}
+                    totalItems={totalToPass}
                     itemsPerPage={TRACKS_PER_PAGE}
                     onPageChange={handleTracksPageChange}
                   />

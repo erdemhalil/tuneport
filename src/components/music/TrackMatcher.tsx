@@ -11,6 +11,7 @@ interface TrackMatcherProps {
   collection: Collection;
   tracks: Track[];
   isLoading?: boolean;
+  isPaginating?: boolean;
   showHeader?: boolean;
   // Pagination props
   currentPage?: number;
@@ -23,6 +24,7 @@ export function TrackMatcher({
   collection,
   tracks,
   isLoading,
+  isPaginating,
   showHeader = true,
   currentPage = 1,
   totalItems = 0,
@@ -216,6 +218,24 @@ export function TrackMatcher({
                 onClick={() => handleTrackSelect(track.id)}
               />
             ))}
+            {isPaginating && (
+              <div className="pt-4 border-t border-white/10 space-y-3">
+                <p className="text-sm text-gray-400 mb-3">Loading next page...</p>
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <div
+                    key={`skeleton-${i}`}
+                    className="glass flex items-center space-x-4 rounded-2xl p-4 opacity-70 animate-pulse animate-breathe"
+                  >
+                    <div className="h-14 w-14 flex-shrink-0 rounded-xl bg-white/10 animate-breathe"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-3/4 rounded bg-white/10 animate-breathe"></div>
+                      <div className="h-3 w-1/2 rounded bg-white/10 animate-breathe"></div>
+                      <div className="h-3 w-1/4 rounded bg-white/10 animate-breathe"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Pagination within Spotify Library section */}

@@ -43,7 +43,7 @@ export function TrackItem({
             height={56}
             className={`h-14 w-14 rounded-xl object-cover shadow-sm transition-all duration-200 ${
               isCurrent
-                ? "ring-2 ring-purple-300 shadow-lg shadow-purple-500/30"
+                ? "shadow-lg ring-2 shadow-purple-500/30 ring-purple-300"
                 : ""
             }`}
           />
@@ -70,10 +70,10 @@ export function TrackItem({
           <h4
             className={`truncate text-sm font-medium transition-colors ${
               isCurrent
-                ? "text-white font-semibold"
+                ? "font-semibold text-white"
                 : isSelected
-                ? "text-emerald-200"
-                : "text-white group-hover:text-purple-300"
+                  ? "text-emerald-200"
+                  : "text-white group-hover:text-purple-300"
             }`}
           >
             {track.name}
@@ -89,8 +89,8 @@ export function TrackItem({
             isCurrent
               ? "text-purple-100"
               : isSelected
-              ? "text-gray-300"
-              : "text-gray-400 group-hover:text-gray-300"
+                ? "text-gray-300"
+                : "text-gray-400 group-hover:text-gray-300"
           }`}
         >
           {track.artists.join(", ")} • {track.album.name}
@@ -100,8 +100,8 @@ export function TrackItem({
             isCurrent
               ? "text-purple-200"
               : isSelected
-              ? "text-gray-400"
-              : "text-gray-500 group-hover:text-gray-400"
+                ? "text-gray-400"
+                : "text-gray-500 group-hover:text-gray-400"
           }`}
         >
           {formatDuration(track.duration_ms)}
@@ -109,7 +109,7 @@ export function TrackItem({
       </div>
 
       {isCurrent && (
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-purple-500 shadow-lg animate-pulse">
+        <div className="absolute top-1/2 right-4 flex h-8 w-8 -translate-y-1/2 animate-pulse items-center justify-center rounded-full bg-purple-500 shadow-lg">
           <svg
             className="h-4 w-4 text-white"
             fill="none"

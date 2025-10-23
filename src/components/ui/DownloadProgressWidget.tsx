@@ -61,7 +61,8 @@ export function DownloadProgressWidget() {
     try {
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.download = trackName && artistName ? `${artistName} - ${trackName}.mp3` : "";
+      link.download =
+        trackName && artistName ? `${artistName} - ${trackName}.mp3` : "";
       link.className = "hidden";
       document.body.appendChild(link);
       console.log("Clicking manual download link...");
@@ -90,7 +91,7 @@ export function DownloadProgressWidget() {
       <div className="animate-scale-in fixed right-6 bottom-6 z-50">
         <button
           onClick={() => setIsMinimized(false)}
-          className="glass group flex items-center justify-between w-80 rounded-2xl border border-white/20 px-6 py-4 shadow-lg transition-all duration-200 hover:shadow-xl hover:border-purple-400/40"
+          className="glass group flex w-80 items-center justify-between rounded-2xl border border-white/20 px-6 py-4 shadow-lg transition-all duration-200 hover:border-purple-400/40 hover:shadow-xl"
         >
           <div className="flex items-center space-x-4">
             <div className="relative">
@@ -100,9 +101,7 @@ export function DownloadProgressWidget() {
               )}
             </div>
             <div className="space-y-0.5">
-              <div className="text-sm font-medium text-white">
-                Downloads
-              </div>
+              <div className="text-sm font-medium text-white">Downloads</div>
               <div className="text-xs text-neutral-300">
                 {activeJobs.length > 0
                   ? `${activeJobs.length} active`
@@ -111,7 +110,7 @@ export function DownloadProgressWidget() {
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <span className="text-xs font-medium text-purple-300 bg-purple-500/20 px-2 py-1 rounded-full">
+            <span className="rounded-full bg-purple-500/20 px-2 py-1 text-xs font-medium text-purple-300">
               Expand
             </span>
             <svg
@@ -141,27 +140,46 @@ export function DownloadProgressWidget() {
           <div className="flex items-center space-x-4">
             <div className="relative">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-600/30 ring-1 ring-purple-500/20">
-                <svg className="h-6 w-6 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <svg
+                  className="h-6 w-6 text-purple-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
                 </svg>
               </div>
               {activeJobs.length > 0 && (
-                <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-400 border-2 border-white/20"></div>
+                <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-white/20 bg-emerald-400"></div>
               )}
             </div>
             <div className="space-y-1">
               <h3 className="text-lg font-semibold text-white">Downloads</h3>
               <div className="text-sm text-neutral-300">
                 {activeJobs.length > 0 && (
-                  <span className="text-blue-400 font-medium">{activeJobs.length} active</span>
+                  <span className="font-medium text-blue-400">
+                    {activeJobs.length} active
+                  </span>
                 )}
-                {activeJobs.length > 0 && completedJobs.length > 0 && <span> • </span>}
+                {activeJobs.length > 0 && completedJobs.length > 0 && (
+                  <span> • </span>
+                )}
                 {completedJobs.length > 0 && (
-                  <span className="text-emerald-400 font-medium">{completedJobs.length} completed</span>
+                  <span className="font-medium text-emerald-400">
+                    {completedJobs.length} completed
+                  </span>
                 )}
-                {(activeJobs.length > 0 || completedJobs.length > 0) && failedJobs.length > 0 && <span> • </span>}
+                {(activeJobs.length > 0 || completedJobs.length > 0) &&
+                  failedJobs.length > 0 && <span> • </span>}
                 {failedJobs.length > 0 && (
-                  <span className="text-red-400 font-medium">{failedJobs.length} failed</span>
+                  <span className="font-medium text-red-400">
+                    {failedJobs.length} failed
+                  </span>
                 )}
               </div>
             </div>
@@ -173,8 +191,18 @@ export function DownloadProgressWidget() {
                 className="inline-flex items-center justify-center rounded-xl bg-white/10 p-2.5 text-neutral-300 transition-all duration-200 hover:bg-white/20 hover:text-white"
                 title="Clear completed downloads"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
               </button>
             )}
@@ -183,23 +211,40 @@ export function DownloadProgressWidget() {
               className="inline-flex items-center justify-center rounded-xl bg-white/10 p-2.5 text-neutral-300 transition-all duration-200 hover:bg-white/20 hover:text-white"
               title="Minimize downloads"
             >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </button>
           </div>
         </div>
 
         {/* Jobs List */}
-        <div className={`max-h-[500px] overflow-y-auto ${isExpanded ? "max-h-none" : ""}`}>
+        <div
+          className={`max-h-[500px] overflow-y-auto ${isExpanded ? "max-h-none" : ""}`}
+        >
           {jobs.map((job) => (
             <JobItem
               key={job.jobId}
               job={job}
               onRemove={() => removeJob(job.jobId)}
               onDownload={
-                job.status === "completed" && job.result?.downloadId 
-                  ? () => triggerDownload(job.result!.downloadId, job.trackName, job.artistName)
+                job.status === "completed" && job.result?.downloadId
+                  ? () =>
+                      triggerDownload(
+                        job.result!.downloadId,
+                        job.trackName,
+                        job.artistName,
+                      )
                   : undefined
               }
             />

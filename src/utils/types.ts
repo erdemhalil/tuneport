@@ -5,7 +5,7 @@ export interface Collection {
   image: string | null;
   track_count: number;
   owner: string;
-  type: 'liked_songs' | 'playlist';
+  type: "liked_songs" | "playlist";
 }
 
 export interface Track {

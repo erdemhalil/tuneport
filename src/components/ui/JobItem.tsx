@@ -98,10 +98,8 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
     <div className="border-b border-white/10 last:border-b-0">
       <div className="space-y-4 p-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4 flex-1 min-w-0">
-            <div className="flex-shrink-0">
-              {getStatusIcon(job.status)}
-            </div>
+          <div className="flex min-w-0 flex-1 items-center space-x-4">
+            <div className="flex-shrink-0">{getStatusIcon(job.status)}</div>
             {/* Spotify Artwork */}
             <div className="flex-shrink-0">
               {job.artwork ? (
@@ -110,15 +108,25 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
                   alt={`${job.trackName} album art`}
                   width={48}
                   height={48}
-                  className="h-12 w-12 rounded-lg object-cover shadow-sm border border-white/20"
+                  className="h-12 w-12 rounded-lg border border-white/20 object-cover shadow-sm"
                   onError={(e) => {
-                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.style.display = "none";
                   }}
                 />
               ) : (
-                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-white/10 to-white/5 border border-white/20 flex items-center justify-center">
-                  <svg className="h-6 w-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5">
+                  <svg
+                    className="h-6 w-6 text-neutral-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                    />
                   </svg>
                 </div>
               )}
@@ -127,32 +135,54 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
               <h4 className="truncate text-base font-medium text-white">
                 {job.trackName}
               </h4>
-              <p className="truncate text-sm text-neutral-300 mt-1">
-                {job.allArtists && job.allArtists.length > 0 
-                  ? job.allArtists.join(', ') 
+              <p className="mt-1 truncate text-sm text-neutral-300">
+                {job.allArtists && job.allArtists.length > 0
+                  ? job.allArtists.join(", ")
                   : job.artistName}
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2 flex-shrink-0">
-            {job.status === "completed" && job.result?.downloadId && onDownload && (
-              <button
-                onClick={onDownload}
-                className="inline-flex items-center justify-center rounded-xl bg-purple-500 p-2.5 text-white shadow-sm transition-all duration-200 hover:bg-purple-400 hover:shadow-md"
-                title="Download file"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-              </button>
-            )}
+          <div className="flex flex-shrink-0 items-center space-x-2">
+            {job.status === "completed" &&
+              job.result?.downloadId &&
+              onDownload && (
+                <button
+                  onClick={onDownload}
+                  className="inline-flex items-center justify-center rounded-xl bg-purple-500 p-2.5 text-white shadow-sm transition-all duration-200 hover:bg-purple-400 hover:shadow-md"
+                  title="Download file"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                </button>
+              )}
             <button
               onClick={onRemove}
               className="inline-flex items-center justify-center rounded-xl bg-white/10 p-2.5 text-neutral-300 transition-all duration-200 hover:bg-red-500/20 hover:text-red-400"
               title="Remove download"
             >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -167,7 +197,7 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
                 style={{ width: progressWidth }}
               />
             </div>
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-purple-400">
                 {Math.round(job.progress)}%
               </span>
@@ -181,8 +211,8 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
             {job.status === "completed" && job.result?.fileSize !== undefined
               ? formatFileSize(job.result.fileSize)
               : job.status === "failed"
-              ? (job.failedReason ?? job.error ?? "Error occurred")
-              : ""}
+                ? (job.failedReason ?? job.error ?? "Error occurred")
+                : ""}
           </span>
         </div>
       </div>

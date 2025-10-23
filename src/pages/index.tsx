@@ -17,9 +17,9 @@ type SpotifyCollectionTracksResponse = {
 
 export default function Home() {
   const { data: sessionData } = useSession();
-  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(
-    null,
-  );
+  const [selectedCollectionId, setSelectedCollectionId] = useState<
+    string | null
+  >(null);
 
   // Pagination state for collections
   const [collectionsPage, setCollectionsPage] = useState(1);
@@ -30,7 +30,8 @@ export default function Home() {
   const TRACKS_PER_PAGE = 50;
 
   // Cache for previous tracks data
-  const [previousCollectionTracksData, setPreviousCollectionTracksData] = useState<SpotifyCollectionTracksResponse | null>(null);
+  const [previousCollectionTracksData, setPreviousCollectionTracksData] =
+    useState<SpotifyCollectionTracksResponse | null>(null);
 
   // Fetch collections (liked songs + playlists) with pagination
   const { data: collectionsData, isLoading: collectionsLoading } =
@@ -43,10 +44,7 @@ export default function Home() {
     );
 
   // Fetch collection tracks when a collection is selected with pagination
-  const { 
-    data: collectionTracksData, 
-    isLoading: collectionTracksLoading 
-  } =
+  const { data: collectionTracksData, isLoading: collectionTracksLoading } =
     api.spotify.collectionTracks.useQuery(
       {
         collectionId: selectedCollectionId!,
@@ -69,8 +67,10 @@ export default function Home() {
   const totalToPass = currentData?.total ?? 0;
 
   // Loading states
-  const isInitialLoading = collectionTracksLoading && previousCollectionTracksData === null;
-  const isPaginating = collectionTracksLoading && previousCollectionTracksData !== null;
+  const isInitialLoading =
+    collectionTracksLoading && previousCollectionTracksData === null;
+  const isPaginating =
+    collectionTracksLoading && previousCollectionTracksData !== null;
 
   // Pagination handlers
   const handleCollectionsPageChange = (page: number) => {
@@ -107,24 +107,24 @@ export default function Home() {
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
           {/* Animated Background Elements */}
           <div className="absolute inset-0">
-            <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-purple-500/5 blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-blue-500/5 blur-3xl animate-pulse delay-1000"></div>
-            <div className="absolute top-1/2 left-1/2 h-64 w-64 rounded-full bg-pink-500/5 blur-3xl animate-pulse delay-500"></div>
+            <div className="absolute top-1/4 left-1/4 h-72 w-72 animate-pulse rounded-full bg-purple-500/5 blur-3xl"></div>
+            <div className="absolute right-1/4 bottom-1/4 h-96 w-96 animate-pulse rounded-full bg-blue-500/5 blur-3xl delay-1000"></div>
+            <div className="absolute top-1/2 left-1/2 h-64 w-64 animate-pulse rounded-full bg-pink-500/5 blur-3xl delay-500"></div>
           </div>
 
           {/* Floating Music Notes Animation */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div className="absolute top-20 left-10 animate-bounce delay-300">
-              <div className="text-purple-400/20 text-4xl">♪</div>
+              <div className="text-4xl text-purple-400/20">♪</div>
             </div>
             <div className="absolute top-40 right-20 animate-bounce delay-700">
-              <div className="text-blue-400/20 text-3xl">♫</div>
+              <div className="text-3xl text-blue-400/20">♫</div>
             </div>
             <div className="absolute bottom-32 left-20 animate-bounce delay-1000">
-              <div className="text-pink-400/20 text-5xl">♬</div>
+              <div className="text-5xl text-pink-400/20">♬</div>
             </div>
-            <div className="absolute bottom-20 right-10 animate-bounce delay-500">
-              <div className="text-purple-400/20 text-4xl">♪</div>
+            <div className="absolute right-10 bottom-20 animate-bounce delay-500">
+              <div className="text-4xl text-purple-400/20">♪</div>
             </div>
           </div>
 
@@ -185,7 +185,7 @@ export default function Home() {
                         )?.name ?? "Collection"}
                       </h2>
                       <span className="text-sm text-gray-400">
-                        {totalToPass} {totalToPass === 1 ? 'track' : 'tracks'}
+                        {totalToPass} {totalToPass === 1 ? "track" : "tracks"}
                       </span>
                     </div>
                     <button
@@ -209,9 +209,11 @@ export default function Home() {
                     </button>
                   </div>
                   <TrackMatcher
-                    collection={collectionsData.collections.find(
-                      (c) => c.id === selectedCollectionId,
-                    )!}
+                    collection={
+                      collectionsData.collections.find(
+                        (c) => c.id === selectedCollectionId,
+                      )!
+                    }
                     tracks={tracksToPass}
                     isLoading={isInitialLoading}
                     isPaginating={isPaginating}
@@ -245,35 +247,35 @@ export default function Home() {
         <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
           {/* Animated Background Elements */}
           <div className="absolute inset-0">
-            <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-purple-500/10 blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl animate-pulse delay-1000"></div>
-            <div className="absolute top-1/2 left-1/2 h-64 w-64 rounded-full bg-pink-500/10 blur-3xl animate-pulse delay-500"></div>
+            <div className="absolute top-1/4 left-1/4 h-72 w-72 animate-pulse rounded-full bg-purple-500/10 blur-3xl"></div>
+            <div className="absolute right-1/4 bottom-1/4 h-96 w-96 animate-pulse rounded-full bg-blue-500/10 blur-3xl delay-1000"></div>
+            <div className="absolute top-1/2 left-1/2 h-64 w-64 animate-pulse rounded-full bg-pink-500/10 blur-3xl delay-500"></div>
           </div>
 
           {/* Floating Music Notes Animation */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute top-20 left-10 animate-bounce delay-300">
-              <div className="text-purple-400/30 text-4xl">♪</div>
+              <div className="text-4xl text-purple-400/30">♪</div>
             </div>
             <div className="absolute top-40 right-20 animate-bounce delay-700">
-              <div className="text-blue-400/30 text-3xl">♫</div>
+              <div className="text-3xl text-blue-400/30">♫</div>
             </div>
             <div className="absolute bottom-32 left-20 animate-bounce delay-1000">
-              <div className="text-pink-400/30 text-5xl">♬</div>
+              <div className="text-5xl text-pink-400/30">♬</div>
             </div>
-            <div className="absolute bottom-20 right-10 animate-bounce delay-500">
-              <div className="text-purple-400/30 text-4xl">♪</div>
+            <div className="absolute right-10 bottom-20 animate-bounce delay-500">
+              <div className="text-4xl text-purple-400/30">♪</div>
             </div>
           </div>
 
           <div className="relative z-10 flex min-h-screen items-center justify-center p-6">
             <div className="w-full max-w-md space-y-8">
               {/* Hero Section with Icon */}
-              <div className="text-center space-y-6">
+              <div className="space-y-6 text-center">
                 {/* Project Icon - Prominent Display */}
                 <div className="flex justify-center">
                   <div className="relative">
-                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-purple-500 to-blue-500 blur-2xl opacity-60 animate-pulse"></div>
+                    <div className="absolute inset-0 animate-pulse rounded-3xl bg-gradient-to-r from-purple-500 to-blue-500 opacity-60 blur-2xl"></div>
                     <div className="relative rounded-3xl bg-gradient-to-r from-purple-600 to-blue-600 p-6 shadow-2xl">
                       <Image
                         src="/tuneport.png"
@@ -288,20 +290,24 @@ export default function Home() {
 
                 {/* Brand Name with Gradient */}
                 <div className="space-y-2">
-                  <h1 className="text-6xl font-bold bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
+                  <h1 className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-6xl font-bold text-transparent">
                     Tuneport
                   </h1>
-                  <div className="h-1 w-24 mx-auto rounded-full bg-gradient-to-r from-purple-500 to-blue-500"></div>
+                  <div className="mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-purple-500 to-blue-500"></div>
                 </div>
 
                 {/* Tagline */}
                 <div className="space-y-3">
-                  <p className="text-xl font-light text-gray-300 leading-relaxed">
+                  <p className="text-xl leading-relaxed font-light text-gray-300">
                     Transform your Spotify library into
-                    <span className="font-semibold text-white"> downloadable MP3s</span>
+                    <span className="font-semibold text-white">
+                      {" "}
+                      downloadable MP3s
+                    </span>
                   </p>
-                  <p className="text-sm text-gray-400 leading-relaxed max-w-sm mx-auto">
-                    Connect your Spotify account and turn your favorite tracks into high-quality downloads with just a few clicks
+                  <p className="mx-auto max-w-sm text-sm leading-relaxed text-gray-400">
+                    Connect your Spotify account and turn your favorite tracks
+                    into high-quality downloads with just a few clicks
                   </p>
                 </div>
               </div>
@@ -311,36 +317,72 @@ export default function Home() {
 
               {/* Feature Grid with Icons */}
               <div className="grid grid-cols-3 gap-6 pt-4">
-                <div className="group text-center space-y-3 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-emerald-500 shadow-lg group-hover:scale-110 transition-transform">
-                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <div className="group space-y-3 rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-sm transition-all duration-300 hover:bg-white/10">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-emerald-500 shadow-lg transition-transform group-hover:scale-110">
+                    <svg
+                      className="h-6 w-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   </div>
-                  <div className="text-xs font-medium text-gray-300">Lightning Fast</div>
+                  <div className="text-xs font-medium text-gray-300">
+                    Lightning Fast
+                  </div>
                 </div>
 
-                <div className="group text-center space-y-3 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg group-hover:scale-110 transition-transform">
-                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                <div className="group space-y-3 rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-sm transition-all duration-300 hover:bg-white/10">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg transition-transform group-hover:scale-110">
+                    <svg
+                      className="h-6 w-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
                     </svg>
                   </div>
-                  <div className="text-xs font-medium text-gray-300">Secure & Private</div>
+                  <div className="text-xs font-medium text-gray-300">
+                    Secure & Private
+                  </div>
                 </div>
 
-                <div className="group text-center space-y-3 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg group-hover:scale-110 transition-transform">
-                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                <div className="group space-y-3 rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-sm transition-all duration-300 hover:bg-white/10">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg transition-transform group-hover:scale-110">
+                    <svg
+                      className="h-6 w-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
                     </svg>
                   </div>
-                  <div className="text-xs font-medium text-gray-300">High Quality</div>
+                  <div className="text-xs font-medium text-gray-300">
+                    High Quality
+                  </div>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="text-center pt-4">
+              <div className="pt-4 text-center">
                 <p className="text-xs text-gray-500">
                   Built with Next.js • Powered by Spotify & YouTube
                 </p>
@@ -357,7 +399,7 @@ function AuthShowcase() {
   const { data: sessionData } = useSession();
 
   return (
-    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl">
+    <div className="rounded-3xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-xl">
       {sessionData?.user ? (
         <div className="space-y-6 text-center">
           <div className="flex flex-col items-center space-y-4">
@@ -374,13 +416,13 @@ function AuthShowcase() {
               </div>
             )}
             <div className="space-y-1">
-              <h3 className="text-xl font-semibold text-white">
-                Welcome back
-              </h3>
+              <h3 className="text-xl font-semibold text-white">Welcome back</h3>
               <p className="font-medium text-gray-300">
                 {sessionData.user.name}
               </p>
-              <p className="text-sm text-gray-400">Ready to download your music?</p>
+              <p className="text-sm text-gray-400">
+                Ready to download your music?
+              </p>
             </div>
           </div>
 
@@ -398,13 +440,14 @@ function AuthShowcase() {
               Connect with Spotify
             </h2>
             <p className="leading-relaxed text-gray-300">
-              Link your Spotify account to start downloading your favorite tracks
+              Link your Spotify account to start downloading your favorite
+              tracks
             </p>
           </div>
 
           <button
             onClick={() => void signIn("spotify")}
-            className="group flex w-full items-center justify-center space-x-4 rounded-2xl bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:from-green-600 hover:to-green-700 hover:shadow-xl hover:scale-105 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
+            className="group flex w-full items-center justify-center space-x-4 rounded-2xl bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-600 hover:to-green-700 hover:shadow-xl focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
           >
             <svg
               className="h-6 w-6 transition-transform group-hover:scale-110"
@@ -417,7 +460,8 @@ function AuthShowcase() {
           </button>
 
           <p className="text-xs leading-relaxed text-gray-400">
-            We only access your music library and playlists. Your data stays secure and private.
+            We only access your music library and playlists. Your data stays
+            secure and private.
           </p>
         </div>
       )}

@@ -29,16 +29,18 @@ Tuneport connects your Spotify library to YouTube for high-quality MP3 downloads
   <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 2rem; align-items: flex-start;">
     <div style="display: flex; flex-direction: column; align-items: center;">
       <h3>Login</h3>
-      <img src="./assets/login.png" alt="Spotify login screen" height="400" />
+      <img src="./assets/login.png" alt="Spotify login screen" height="400" style="object-fit: contain;" />
     </div>
     <div style="display: flex; flex-direction: column; align-items: center;">
       <h3>Browse Collections</h3>
-      <img src="./assets/collections.png" alt="Browse liked songs and playlists" height="400" />
+      <img src="./assets/collections.png" alt="Browse liked songs and playlists" height="400" style="object-fit: contain;" />
     </div>
   </div>
   
-  <h3>Track Downloads</h3>
-  <img src="./assets/downloads.png" alt="Download progress tracking" width="600" />
+  <div style="display: flex; flex-direction: column; align-items: center; margin-top: 2rem;">
+    <h3>Track Downloads</h3>
+    <img src="./assets/downloads.png" alt="Download progress tracking" height="400" style="object-fit: contain;" />
+  </div>
 </div>
 
 ## Tech Stack

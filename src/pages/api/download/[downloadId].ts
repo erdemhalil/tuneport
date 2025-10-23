@@ -18,7 +18,6 @@ export default async function handler(
   }
 
   try {
-    // Check authentication
     const session = await getServerSession(req, res, authConfig);
     if (!session?.user?.id) {
       console.log("❌ Authentication failed - no valid session");
@@ -36,7 +35,6 @@ export default async function handler(
 
     console.log(`🔍 Fetching download: ${downloadId}`);
 
-    // Get the downloaded file
     const fileData = await getDownloadedFile(downloadId);
 
     if (!fileData) {
@@ -48,7 +46,6 @@ export default async function handler(
       `Serving download: ${fileData.filename} (${fileData.size} bytes)`,
     );
 
-    // Set appropriate headers for file download
     res.setHeader("Content-Type", fileData.mimeType);
     res.setHeader("Content-Length", fileData.size);
     res.setHeader(
@@ -62,7 +59,6 @@ export default async function handler(
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
 
-    // Send the file buffer
     res.send(fileData.buffer);
   } catch (error) {
     console.error("Download API error:", error);

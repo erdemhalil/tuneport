@@ -96,7 +96,6 @@ export const authConfig: NextAuthOptions = {
         token.providerAccountId = account.providerAccountId;
       }
 
-      // Check if token is expired and refresh if needed
       const expiresAt = token.expiresAt as number | undefined;
       if (expiresAt && Date.now() >= expiresAt) {
         try {
@@ -120,11 +119,9 @@ export const authConfig: NextAuthOptions = {
             const data = (await response.json()) as TokenResponse;
             token.accessToken = data.access_token;
             token.expiresAt = Date.now() + data.expires_in * 1000;
-            // Spotify refresh tokens can be reused, so we keep the same refresh token
           }
         } catch (error) {
           console.error("Token refresh failed:", error);
-          // Token refresh failed, user will need to re-authenticate
         }
       }
 

@@ -8,7 +8,6 @@ export function DownloadProgressWidget() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [downloadedJobs, setDownloadedJobs] = useState<Set<string>>(new Set());
 
-  // Auto-download completed jobs
   useEffect(() => {
     jobs.forEach((job) => {
       if (
@@ -19,16 +18,13 @@ export function DownloadProgressWidget() {
         console.log(
           `Auto-downloading completed job: ${job.jobId} - ${job.trackName}`,
         );
-        // Trigger download
         const downloadUrl = `/api/download/${job.result.downloadId}`;
         console.log(`Download URL: ${downloadUrl}`);
 
-        // Try multiple approaches for browser compatibility
         try {
-          // Method 1: Create and click a link with proper filename
           const link = document.createElement("a");
           link.href = downloadUrl;
-          link.download = `${job.artistName} - ${job.trackName}.mp3`; // Suggest filename
+          link.download = `${job.artistName} - ${job.trackName}.mp3`;
           link.style.display = "none";
 
           // Add to DOM temporarily
@@ -45,7 +41,6 @@ export function DownloadProgressWidget() {
           setDownloadedJobs((prev) => new Set(prev).add(job.jobId));
         } catch (error) {
           console.error("Download failed:", error);
-          // Fallback: open in new tab (less ideal but works)
           console.log("Falling back to opening in new tab");
           window.open(downloadUrl, "_blank");
           setDownloadedJobs((prev) => new Set(prev).add(job.jobId));
@@ -64,12 +59,10 @@ export function DownloadProgressWidget() {
     console.log(`Manual download URL: ${downloadUrl}`);
 
     try {
-      // Create and click a link with proper filename
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.download =
-        trackName && artistName ? `${artistName} - ${trackName}.mp3` : ""; // Suggest filename
-      link.className = "hidden"; // Use Tailwind hidden class
+      link.download = trackName && artistName ? `${artistName} - ${trackName}.mp3` : "";
+      link.className = "hidden";
       document.body.appendChild(link);
       console.log("Clicking manual download link...");
       link.click();
@@ -77,7 +70,6 @@ export function DownloadProgressWidget() {
       console.log("Manual download link clicked and removed");
     } catch (error) {
       console.error("Manual download failed:", error);
-      // Fallback: open in new tab
       console.log("Falling back to opening in new tab");
       window.open(downloadUrl, "_blank");
     }

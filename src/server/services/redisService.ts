@@ -11,7 +11,7 @@ export const redisConnection = new IORedis({
 const DOWNLOAD_FILE_KEY = (downloadId: string) => `download:file:${downloadId}`;
 
 export interface RedisFileData {
-  buffer: string; // base64 encoded
+  buffer: string;
   filename: string;
   mimeType: string;
   size: number;
@@ -23,7 +23,6 @@ export async function getDownloadedFile(downloadId: string) {
     const data = await redisConnection.get(DOWNLOAD_FILE_KEY(downloadId));
     if (!data) return null;
 
-    // Type assertion for JSON.parse
     const fileData = JSON.parse(data) as RedisFileData;
     const buffer = Buffer.from(fileData.buffer, "base64");
 

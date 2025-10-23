@@ -13,7 +13,6 @@ interface TrackMatcherProps {
   isLoading?: boolean;
   isPaginating?: boolean;
   showHeader?: boolean;
-  // Pagination props
   currentPage?: number;
   totalItems?: number;
   itemsPerPage?: number;
@@ -37,15 +36,13 @@ export function TrackMatcher({
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const { addJobs } = useDownloads();
 
-  // Download mutation
   const downloadMutation = api.youtube.downloadTracks.useMutation({
     onSuccess: (data) => {
       console.log("🎉 Download mutation success:", data);
-      // Add jobs to the download context for progress tracking
+
       const validJobs = data.jobs
         .filter((job) => job.jobId)
         .map((job) => {
-          // Find the corresponding track only for artwork
           const track = tracks.find(
             (t) => t.name === job.trackName && t.artists.includes(job.artistName),
           );
@@ -100,8 +97,8 @@ export function TrackMatcher({
           videoId,
           trackName: track.name,
           artistName: track.artists[0] ?? "Unknown Artist",
-          allArtists: track.artists, // Pass all artists from Spotify
-          artwork: track.album.image ?? undefined, // Pass Spotify album artwork
+          allArtists: track.artists,
+          artwork: track.album.image ?? undefined,
         };
       })
       .filter((track): track is NonNullable<typeof track> => track !== null);

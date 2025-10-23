@@ -277,7 +277,6 @@ export class SpotifyService {
     limit: number;
     offset: number;
   }> {
-    // Get liked songs count
     const likedSongsResponse = await this.makeRequest(
       "https://api.spotify.com/v1/me/tracks?limit=1&offset=0",
     );
@@ -290,10 +289,8 @@ export class SpotifyService {
     const likedSongsData =
       (await likedSongsResponse.json()) as LikedSongsResponse;
 
-    // Get playlists
     const playlistsData = await this.getPlaylists(limit, offset);
 
-    // Create collections array
     const collections: SpotifyCollection[] = [
       {
         id: "liked_songs",

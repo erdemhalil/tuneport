@@ -33,7 +33,6 @@ export function YouTubeSearch({
     },
   );
 
-  // Ensure matches is a safe, typed array before accessing members
   type Match = {
     videoId: string;
     title: string;

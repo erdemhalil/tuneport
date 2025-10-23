@@ -17,10 +17,8 @@ const downloadWorker = new Worker(
     const { videoId, trackName, artistName, allArtists, userId } = job.data;
 
     try {
-      // Update job progress
       await job.updateProgress(10);
 
-      // Process song name and extract featured artists
       function processSpotifySongName(
         songArtists: string[],
         songTitle: string,
@@ -75,7 +73,6 @@ const downloadWorker = new Worker(
         return [songArtists, title];
       }
 
-      // Get all artists (start with Spotify artists or fallback to single artist)
       const initialArtists =
         allArtists && allArtists.length > 0 ? [...allArtists] : [artistName];
       const [finalArtists, processedTitle] = processSpotifySongName(
@@ -83,7 +80,6 @@ const downloadWorker = new Worker(
         trackName,
       );
 
-      // Create filename with all artists
       const safeTrackName = processedTitle
         .replace(/:/g, "")
         .replace(/&/g, "and")
@@ -93,10 +89,8 @@ const downloadWorker = new Worker(
         .join(", ");
       const filename = `${safeArtists} - ${safeTrackName}.mp3`;
 
-      // Update progress
       await job.updateProgress(20);
 
-      // Use yt-dlp directly via child_process for better reliability
       const downloadUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
       // First, get video info to check if it's available
@@ -112,17 +106,14 @@ const downloadWorker = new Worker(
         );
       }
 
-      // Download the video as MP3 to a buffer using yt-dlp
       let totalSize = 0;
 
-      // Create a temporary file path for download
       const tempDir = tmpdir();
       const tempFilePath = join(
         tempDir,
         `download-${videoId}-${Date.now()}.mp3`,
       );
 
-      // Use spawn to download to a temporary file (ensures proper audio extraction)
       const ytDlpProcess = spawn(
         "yt-dlp",
         [
@@ -135,7 +126,7 @@ const downloadWorker = new Worker(
           "320K",
           "--no-playlist",
           "-o",
-          tempFilePath, // Output to temporary file
+          tempFilePath,
           downloadUrl,
         ],
         {
@@ -145,8 +136,6 @@ const downloadWorker = new Worker(
 
       let downloadTimeout: NodeJS.Timeout;
 
-      // Track download progress (yt-dlp doesn't provide real-time progress to stdout for audio extraction)
-      // We'll use a simple progress simulation
       let currentProgress = 20;
 
       const progressInterval = setInterval(() => {
@@ -156,7 +145,6 @@ const downloadWorker = new Worker(
         }
       }, 2000);
 
-      // Wait for download to complete with timeout
       const downloadPromise = new Promise<void>((resolve, reject) => {
         const cleanup = () => {
           if (progressInterval) clearInterval(progressInterval);
@@ -183,14 +171,12 @@ const downloadWorker = new Worker(
           reject(error);
         });
 
-        // Also listen for stderr for error messages
         ytDlpProcess.stderr.on("data", (data: Buffer) => {
           const errorOutput = data.toString();
           console.warn(`yt-dlp stderr for ${trackName}:`, errorOutput);
         });
       });
 
-      // Add timeout to prevent hanging
       const timeoutPromise = new Promise<never>((_, reject) => {
         downloadTimeout = setTimeout(() => {
           console.error(
@@ -205,14 +191,11 @@ const downloadWorker = new Worker(
         }, 90 * 1000); // 1 minute 30 seconds timeout
       });
 
-      // Race between download completion and timeout
       await Promise.race([downloadPromise, timeoutPromise]);
 
-      // Read the downloaded file
       const buffer = await readFile(tempFilePath);
       totalSize = buffer.length;
 
-      // Clean up temporary file
       try {
         await unlink(tempFilePath);
       } catch (cleanupError) {
@@ -222,7 +205,6 @@ const downloadWorker = new Worker(
         );
       }
 
-      // Check if we actually received data
       if (totalSize === 0) {
         throw new Error("No data received from yt-dlp process");
       }
@@ -231,10 +213,7 @@ const downloadWorker = new Worker(
         `Download completed for ${trackName}, file size: ${totalSize} bytes`,
       );
 
-      // Generate unique download ID
       const downloadId = `${userId}-${videoId}-${Date.now()}`;
-
-      // Store file data in Redis
       await storeDownloadedFile(downloadId, buffer, filename);
 
       console.log(
@@ -247,7 +226,7 @@ const downloadWorker = new Worker(
         artistName,
         downloadId,
         fileSize: totalSize,
-        duration: 0, // Could be extracted from metadata if needed
+        duration: 0,
         success: true,
       } as DownloadResult;
     } catch (error) {
@@ -258,22 +237,19 @@ const downloadWorker = new Worker(
         errorMessage,
       );
 
-      // Make sure to update progress to show failure - but don't reset to 0
       try {
         await job.updateProgress(0);
       } catch (progressError) {
         console.warn("Failed to update job progress:", progressError);
       }
 
-      // Throw the error to make BullMQ mark the job as failed
       throw new Error(`Download failed: ${errorMessage}`);
     }
   },
   {
     connection: redisConnection,
-    concurrency: 8, // Process up to 8 downloads simultaneously
+    concurrency: 8,
   },
 );
 
-// Export the worker for initialization
 export default downloadWorker;

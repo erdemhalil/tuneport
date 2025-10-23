@@ -112,7 +112,6 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
                   height={48}
                   className="h-12 w-12 rounded-lg object-cover shadow-sm border border-white/20"
                   onError={(e) => {
-                    // Fallback if image fails to load
                     e.currentTarget.style.display = 'none';
                   }}
                 />

@@ -1,4 +1,3 @@
-// Shared types for the application
 export interface Collection {
   id: string;
   name: string;

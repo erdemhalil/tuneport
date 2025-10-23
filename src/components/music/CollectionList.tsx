@@ -6,7 +6,6 @@ interface CollectionListProps {
   collections: Collection[];
   onCollectionClick?: (collectionId: string) => void;
   isLoading?: boolean;
-  // Pagination props
   currentPage?: number;
   totalItems?: number;
   itemsPerPage?: number;

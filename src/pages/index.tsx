@@ -29,7 +29,7 @@ export default function Home() {
   const [tracksPage, setTracksPage] = useState(1);
   const TRACKS_PER_PAGE = 50;
 
-  // Cache for previous tracks data to prevent UI flicker during pagination
+  // Cache for previous tracks data
   const [previousCollectionTracksData, setPreviousCollectionTracksData] = useState<SpotifyCollectionTracksResponse | null>(null);
 
   // Fetch collections (liked songs + playlists) with pagination
@@ -104,7 +104,6 @@ export default function Home() {
       </Head>
 
       {sessionData?.user ? (
-        // Music Library View - Modern Dark Theme
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
           {/* Animated Background Elements */}
           <div className="absolute inset-0">
@@ -243,7 +242,6 @@ export default function Home() {
           </main>
         </div>
       ) : (
-        // Modern Hero Landing Page with Icon Integration
         <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
           {/* Animated Background Elements */}
           <div className="absolute inset-0">

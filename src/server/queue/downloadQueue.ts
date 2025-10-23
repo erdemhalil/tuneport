@@ -3,7 +3,6 @@ import downloadWorker from "../workers/downloadWorker";
 import { redisConnection } from "../lib/redis";
 import type { DownloadJobData, DownloadResult } from "./types";
 
-// Download queue
 export const downloadQueue = new Queue("youtube-downloads", {
   connection: redisConnection,
   defaultJobOptions: {
@@ -12,7 +11,6 @@ export const downloadQueue = new Queue("youtube-downloads", {
   },
 });
 
-// Initialize worker events
 downloadWorker.on("completed", (job: Job<DownloadJobData>, result: DownloadResult) => {
   console.log(
     `✅ Download completed: ${job.data.trackName} by ${job.data.artistName} (${result.fileSize} bytes)`,

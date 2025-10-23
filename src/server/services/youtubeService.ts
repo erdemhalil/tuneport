@@ -31,7 +31,7 @@ export interface YouTubeSearchInput {
 }
 
 export class YouTubeService {
-  private session?: Session; // Make optional for static methods
+  private session?: Session;
 
   constructor(session?: Session) {
     this.session = session;
@@ -120,7 +120,6 @@ export class YouTubeService {
 
     console.log("YouTube search cache miss for:", searchQuery);
 
-    // Search for videos
     const searchResponse = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=5&key=${apiKey}`,
     );
@@ -163,7 +162,6 @@ export class YouTubeService {
       return { matches: [] };
     }
 
-    // Get video details
     const videoIds = searchData.items.map((item) => item.id.videoId).join(",");
     const detailsResponse = await fetch(
       `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status&id=${videoIds}&key=${apiKey}`,
@@ -199,7 +197,6 @@ export class YouTubeService {
       }>;
     };
 
-    // Combine results
     const matches: YouTubeSearchResult[] = searchData.items
       .map((item, index) => {
         const details = detailsData.items?.[index];

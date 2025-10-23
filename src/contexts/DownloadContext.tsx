@@ -32,7 +32,6 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
   const [jobs, setJobs] = useState<DownloadJob[]>([]);
   const [jobIds, setJobIds] = useState<string[]>([]);
 
-  // Poll for job status updates every 2 seconds
   const statusQuery = api.youtube.getDownloadStatus.useQuery(
     { jobIds },
     {
@@ -41,7 +40,6 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
     },
   );
 
-  // Update jobs when status changes
   useEffect(() => {
     if (statusQuery.data) {
       setJobs((currentJobs) =>

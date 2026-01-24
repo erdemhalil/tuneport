@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { api } from "~/utils/api";
 import { CollectionList } from "~/components/music/CollectionList";
 import { TrackMatcher } from "~/components/music/TrackMatcher";
+import { YouTubeMp3 } from "~/components/music/YouTubeMp3";
 import type { Track } from "~/utils/types";
 
 type SpotifyCollectionTracksResponse = {
@@ -20,6 +21,7 @@ export default function Home() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<
     string | null
   >(null);
+  const [activeTab, setActiveTab] = useState<"spotify" | "youtube">("spotify");
 
   // Pagination state for collections
   const [collectionsPage, setCollectionsPage] = useState(1);
@@ -174,60 +176,86 @@ export default function Home() {
           {/* Main Content - Generous spacing for premium feel */}
           <main className="relative mx-auto max-w-7xl px-6 py-12 lg:px-8">
             <div className="space-y-16">
+              {/* Tabs */}
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => setActiveTab("spotify")}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                    activeTab === "spotify"
+                      ? "bg-white/15 text-white ring-2 ring-purple-400/70"
+                      : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  Spotify Library
+                </button>
+                <button
+                  onClick={() => setActiveTab("youtube")}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                    activeTab === "youtube"
+                      ? "bg-white/15 text-white ring-2 ring-purple-400/70"
+                      : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  YouTube to MP3
+                </button>
+              </div>
+
               {/* Selected Collection Tracks */}
-              {selectedCollectionId && collectionsData && (
-                <section className="animate-fade-in space-y-8">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-baseline gap-4">
-                      <h2 className="text-3xl font-light tracking-tight text-white">
-                        {collectionsData.collections.find(
-                          (c) => c.id === selectedCollectionId,
-                        )?.name ?? "Collection"}
-                      </h2>
-                      <span className="text-sm text-gray-400">
-                        {totalToPass} {totalToPass === 1 ? "track" : "tracks"}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => handleCollectionSelect(null)}
-                      className="inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
-                    >
-                      <svg
-                        className="mr-2 h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+              {activeTab === "spotify" &&
+                selectedCollectionId &&
+                collectionsData && (
+                  <section className="animate-fade-in space-y-8">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-baseline gap-4">
+                        <h2 className="text-3xl font-light tracking-tight text-white">
+                          {collectionsData.collections.find(
+                            (c) => c.id === selectedCollectionId,
+                          )?.name ?? "Collection"}
+                        </h2>
+                        <span className="text-sm text-gray-400">
+                          {totalToPass} {totalToPass === 1 ? "track" : "tracks"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleCollectionSelect(null)}
+                        className="inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 19l-7-7 7-7"
-                        />
-                      </svg>
-                      Back to Collections
-                    </button>
-                  </div>
-                  <TrackMatcher
-                    collection={
-                      collectionsData.collections.find(
-                        (c) => c.id === selectedCollectionId,
-                      )!
-                    }
-                    tracks={tracksToPass}
-                    isLoading={isInitialLoading}
-                    isPaginating={isPaginating}
-                    showHeader={false}
-                    currentPage={tracksPage}
-                    totalItems={totalToPass}
-                    itemsPerPage={TRACKS_PER_PAGE}
-                    onPageChange={handleTracksPageChange}
-                  />
-                </section>
-              )}
+                        <svg
+                          className="mr-2 h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 19l-7-7 7-7"
+                          />
+                        </svg>
+                        Back to Collections
+                      </button>
+                    </div>
+                    <TrackMatcher
+                      collection={
+                        collectionsData.collections.find(
+                          (c) => c.id === selectedCollectionId,
+                        )!
+                      }
+                      tracks={tracksToPass}
+                      isLoading={isInitialLoading}
+                      isPaginating={isPaginating}
+                      showHeader={false}
+                      currentPage={tracksPage}
+                      totalItems={totalToPass}
+                      itemsPerPage={TRACKS_PER_PAGE}
+                      onPageChange={handleTracksPageChange}
+                    />
+                  </section>
+                )}
 
               {/* Collections List */}
-              {!selectedCollectionId && (
+              {activeTab === "spotify" && !selectedCollectionId && (
                 <section className="animate-fade-in space-y-8">
                   <CollectionList
                     collections={collectionsData?.collections ?? []}
@@ -240,6 +268,8 @@ export default function Home() {
                   />
                 </section>
               )}
+
+              {activeTab === "youtube" && <YouTubeMp3 />}
             </div>
           </main>
         </div>

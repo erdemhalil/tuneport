@@ -14,7 +14,14 @@ const exec = promisify(execCallback);
 const downloadWorker = new Worker(
   "youtube-downloads",
   async (job: Job<DownloadJobData>): Promise<DownloadResult> => {
-    const { videoId, trackName, artistName, allArtists, userId } = job.data;
+    const {
+      videoId,
+      trackName,
+      artistName,
+      allArtists,
+      userId,
+      useArtistInFilename,
+    } = job.data;
 
     try {
       await job.updateProgress(10);
@@ -80,14 +87,33 @@ const downloadWorker = new Worker(
         trackName,
       );
 
-      const safeTrackName = processedTitle
-        .replace(/:/g, "")
-        .replace(/&/g, "and")
-        .trim();
+      const sanitizeFilenamePart = (value: string) =>
+        value
+          .replace(/[\\/:*?"<>|]/g, "")
+          .replace(/[’‘]/g, "'")
+          .replace(/&/g, "and")
+          .replace(
+            /\s*[\[(](official|audio|video|lyrics|lyric|visualizer|mv|music video|official music video|official video|hd|4k|8k)[^\])]*[\])]/gi,
+            "",
+          )
+          .replace(
+            /\s*[-–—]\s*(official|audio|video|lyrics|lyric|visualizer|mv|music video|official music video|official video|hd|4k|8k)\b.*$/i,
+            "",
+          )
+          .replace(/\s+/g, " ")
+          .trim()
+          .replace(/\.+$/g, "");
+
+      const safeTrackName = sanitizeFilenamePart(processedTitle);
       const safeArtists = finalArtists
-        .map((artist) => artist.replace(/:/g, "").replace(/&/g, "and").trim())
+        .map((artist) => sanitizeFilenamePart(artist))
+        .filter((artist) => artist.length > 0)
         .join(", ");
-      const filename = `${safeArtists} - ${safeTrackName}.mp3`;
+
+      const includeArtist = useArtistInFilename ?? true;
+      const filename = includeArtist && safeArtists.length > 0
+        ? `${safeArtists} - ${safeTrackName}.mp3`
+        : `${safeTrackName}.mp3`;
 
       await job.updateProgress(20);
 

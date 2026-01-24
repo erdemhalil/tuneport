@@ -4,6 +4,7 @@ export interface DownloadJobData {
   artistName: string;
   allArtists?: string[];
   artwork?: string;
+  useArtistInFilename?: boolean;
   userId: string;
   jobId: string;
 }

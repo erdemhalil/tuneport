@@ -111,9 +111,10 @@ const downloadWorker = new Worker(
         .join(", ");
 
       const includeArtist = useArtistInFilename ?? true;
-      const filename = includeArtist && safeArtists.length > 0
-        ? `${safeArtists} - ${safeTrackName}.mp3`
-        : `${safeTrackName}.mp3`;
+      const filename =
+        includeArtist && safeArtists.length > 0
+          ? `${safeArtists} - ${safeTrackName}.mp3`
+          : `${safeTrackName}.mp3`;
 
       await job.updateProgress(20);
 

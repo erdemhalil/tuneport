@@ -13,6 +13,7 @@ export interface YouTubeSearchResult {
   channel: string;
   duration: string;
   thumbnail: string;
+  viewCount?: number | null;
   confidence: number;
   explicit: boolean;
   clean: boolean;
@@ -38,6 +39,7 @@ interface YouTubeResultInput {
   channel: string;
   duration: string;
   thumbnail: string;
+  viewCount?: number | null;
   confidence: number;
   madeForKids?: boolean;
   selfDeclaredMadeForKids?: boolean;
@@ -49,6 +51,11 @@ const youTubeSearchResultSchema = z.object({
   channel: z.string(),
   duration: z.string(),
   thumbnail: z.string(),
+  viewCount: z
+    .number()
+    .nullable()
+    .nullish()
+    .transform((value) => value ?? null),
   confidence: z.number(),
   explicit: z.boolean(),
   clean: z.boolean(),
@@ -110,6 +117,19 @@ export function isYouTubeContentClean(meta: VideoMetadata): boolean {
   return false;
 }
 
+function parseYouTubeViewCount(viewCount: string | undefined): number | null {
+  if (!viewCount) {
+    return null;
+  }
+
+  const parsed = Number(viewCount);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return null;
+  }
+
+  return parsed;
+}
+
 function buildYouTubeSearchResult(
   input: YouTubeResultInput,
 ): YouTubeSearchResult {
@@ -126,6 +146,7 @@ function buildYouTubeSearchResult(
     channel: input.channel,
     duration: input.duration,
     thumbnail: input.thumbnail,
+    viewCount: input.viewCount ?? null,
     confidence: input.confidence,
     explicit: isYouTubeContentExplicit(metadata),
     clean: isYouTubeContentClean(metadata),
@@ -157,6 +178,11 @@ const youTubeVideoSummaryItemSchema = z.object({
     madeForKids: z.boolean().optional(),
     selfDeclaredMadeForKids: z.boolean().optional(),
   }),
+  statistics: z
+    .object({
+      viewCount: z.string().optional(),
+    })
+    .optional(),
 });
 
 /** Zod schema for a videos.list item when requesting snippet, contentDetails, and status */
@@ -317,7 +343,7 @@ export class YouTubeService {
           .map((item) => item.id.videoId)
           .join(",");
         const detailsData = await this.fetchYouTubeApi<YouTubeVideoSummaryResponse>(
-          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status&id=${videoIds}`,
+          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status,statistics&id=${videoIds}`,
           "Videos",
           youTubeVideoSummaryResponseSchema,
         );
@@ -342,6 +368,7 @@ export class YouTubeService {
               channel: item.snippet.channelTitle,
               duration: details?.contentDetails.duration ?? "PT0S",
               thumbnail: item.snippet.thumbnails.default.url,
+              viewCount: parseYouTubeViewCount(details?.statistics?.viewCount),
               confidence,
               madeForKids: details?.status.madeForKids,
               selfDeclaredMadeForKids: details?.status.selfDeclaredMadeForKids,
@@ -382,7 +409,7 @@ export class YouTubeService {
 
         const videoIds = searchData.items.map((item) => item.id.videoId);
         const detailsData = await this.fetchYouTubeApi<YouTubeVideoSummaryResponse>(
-          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status&id=${videoIds.join(",")}`,
+          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status,statistics&id=${videoIds.join(",")}`,
           "Videos",
           youTubeVideoSummaryResponseSchema,
         );
@@ -401,6 +428,7 @@ export class YouTubeService {
             thumbnail:
               item.snippet.thumbnails.medium?.url ??
               item.snippet.thumbnails.default.url,
+            viewCount: parseYouTubeViewCount(details?.statistics?.viewCount),
             confidence: 80,
             madeForKids: details?.status.madeForKids,
             selfDeclaredMadeForKids: details?.status.selfDeclaredMadeForKids,
@@ -433,7 +461,7 @@ export class YouTubeService {
       cacheKey,
       async () => {
         const detailsData = await this.fetchYouTubeApi<YouTubeVideoFullResponse>(
-          `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,status&id=${encodeURIComponent(trimmedId)}`,
+          `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,status,statistics&id=${encodeURIComponent(trimmedId)}`,
           "Videos",
           youTubeVideoFullResponseSchema,
         );
@@ -451,6 +479,7 @@ export class YouTubeService {
           thumbnail:
             item.snippet.thumbnails.medium?.url ??
             item.snippet.thumbnails.default.url,
+          viewCount: parseYouTubeViewCount(item.statistics?.viewCount),
           confidence: 100,
           madeForKids: item.status.madeForKids,
           selfDeclaredMadeForKids: item.status.selfDeclaredMadeForKids,

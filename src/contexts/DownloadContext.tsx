@@ -89,14 +89,15 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
   };
 
   const clearCompleted = () => {
-    setJobs((current) =>
-      current.filter((job) => !["completed", "failed"].includes(job.status)),
-    );
-    setJobIds((current) => {
-      const completedJobIds = jobs
-        .filter((job) => ["completed", "failed"].includes(job.status))
-        .map((job) => job.jobId);
-      return current.filter((id) => !completedJobIds.includes(id));
+    setJobs((current) => {
+      const activeJobs = current.filter(
+        (job) => job.status !== "completed" && job.status !== "failed",
+      );
+      const activeJobIds = new Set(activeJobs.map((job) => job.jobId));
+      setJobIds((currentIds) =>
+        currentIds.filter((id) => activeJobIds.has(id)),
+      );
+      return activeJobs;
     });
   };
 

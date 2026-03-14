@@ -1,6 +1,7 @@
 import Image from "next/image";
+import type { DownloadJobStatus } from "~/utils/types";
 import type { DownloadJob } from "~/utils/types";
-import { formatFileSize } from "./utils";
+import { formatFileSize } from "~/utils/format";
 
 interface JobItemProps {
   job: DownloadJob;
@@ -9,7 +10,7 @@ interface JobItemProps {
 }
 
 export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: DownloadJobStatus) => {
     switch (status) {
       case "completed":
         return "text-emerald-400";
@@ -23,7 +24,7 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: DownloadJobStatus) => {
     switch (status) {
       case "completed":
         return (

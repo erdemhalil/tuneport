@@ -1,96 +1,17 @@
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Head from "next/head";
 import Image from "next/image";
-import { useState, useEffect } from "react";
 
-import { api } from "~/utils/api";
 import { CollectionList } from "~/components/music/CollectionList";
 import { TrackMatcher } from "~/components/music/TrackMatcher";
 import { YouTubeMp3 } from "~/components/music/YouTubeMp3";
-import type { Track } from "~/utils/types";
-
-type SpotifyCollectionTracksResponse = {
-  tracks: Track[];
-  total: number;
-  limit: number;
-  offset: number;
-};
+import { LandingPage } from "~/components/LandingPage";
+import { AnimatedBackground } from "~/components/ui/AnimatedBackground";
+import { useSpotifyDashboard } from "~/hooks/useSpotifyDashboard";
 
 export default function Home() {
   const { data: sessionData } = useSession();
-  const [selectedCollectionId, setSelectedCollectionId] = useState<
-    string | null
-  >(null);
-  const [activeTab, setActiveTab] = useState<"spotify" | "youtube">("spotify");
-
-  // Pagination state for collections
-  const [collectionsPage, setCollectionsPage] = useState(1);
-  const COLLECTIONS_PER_PAGE = 20;
-
-  // Pagination state for tracks
-  const [tracksPage, setTracksPage] = useState(1);
-  const TRACKS_PER_PAGE = 50;
-
-  // Cache for previous tracks data
-  const [previousCollectionTracksData, setPreviousCollectionTracksData] =
-    useState<SpotifyCollectionTracksResponse | null>(null);
-
-  // Fetch collections (liked songs + playlists) with pagination
-  const { data: collectionsData, isLoading: collectionsLoading } =
-    api.spotify.collections.useQuery(
-      {
-        limit: COLLECTIONS_PER_PAGE,
-        offset: (collectionsPage - 1) * COLLECTIONS_PER_PAGE,
-      },
-      { enabled: !!sessionData?.user },
-    );
-
-  // Fetch collection tracks when a collection is selected with pagination
-  const { data: collectionTracksData, isLoading: collectionTracksLoading } =
-    api.spotify.collectionTracks.useQuery(
-      {
-        collectionId: selectedCollectionId!,
-        limit: TRACKS_PER_PAGE,
-        offset: (tracksPage - 1) * TRACKS_PER_PAGE,
-      },
-      { enabled: !!sessionData?.user && !!selectedCollectionId },
-    );
-
-  // Update cache when new data loads (not during loading)
-  useEffect(() => {
-    if (collectionTracksData && !collectionTracksLoading) {
-      setPreviousCollectionTracksData(collectionTracksData);
-    }
-  }, [collectionTracksData, collectionTracksLoading]);
-
-  // Determine data to pass: use current if available, else previous
-  const currentData = collectionTracksData ?? previousCollectionTracksData;
-  const tracksToPass = currentData?.tracks ?? [];
-  const totalToPass = currentData?.total ?? 0;
-
-  // Loading states
-  const isInitialLoading =
-    collectionTracksLoading && previousCollectionTracksData === null;
-  const isPaginating =
-    collectionTracksLoading && previousCollectionTracksData !== null;
-
-  // Pagination handlers
-  const handleCollectionsPageChange = (page: number) => {
-    setCollectionsPage(page);
-  };
-
-  const handleTracksPageChange = (page: number) => {
-    setTracksPage(page);
-  };
-
-  // Reset tracks page and cache when switching collections
-  const handleCollectionSelect = (collectionId: string | null) => {
-    setSelectedCollectionId(collectionId);
-    setTracksPage(1); // Reset to first page when switching collections
-    if (collectionId !== selectedCollectionId) {
-      setPreviousCollectionTracksData(null); // Clear cache for new collection
-    }
-  };
+  const dashboard = useSpotifyDashboard(!!sessionData?.user);
 
   return (
     <>
@@ -107,30 +28,9 @@ export default function Home() {
 
       {sessionData?.user ? (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-          {/* Animated Background Elements */}
-          <div className="absolute inset-0">
-            <div className="absolute top-1/4 left-1/4 h-72 w-72 animate-pulse rounded-full bg-purple-500/5 blur-3xl"></div>
-            <div className="absolute right-1/4 bottom-1/4 h-96 w-96 animate-pulse rounded-full bg-blue-500/5 blur-3xl delay-1000"></div>
-            <div className="absolute top-1/2 left-1/2 h-64 w-64 animate-pulse rounded-full bg-pink-500/5 blur-3xl delay-500"></div>
-          </div>
+          <AnimatedBackground variant="app" />
 
-          {/* Floating Music Notes Animation */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute top-20 left-10 animate-bounce delay-300">
-              <div className="text-4xl text-purple-400/20">♪</div>
-            </div>
-            <div className="absolute top-40 right-20 animate-bounce delay-700">
-              <div className="text-3xl text-blue-400/20">♫</div>
-            </div>
-            <div className="absolute bottom-32 left-20 animate-bounce delay-1000">
-              <div className="text-5xl text-pink-400/20">♬</div>
-            </div>
-            <div className="absolute right-10 bottom-20 animate-bounce delay-500">
-              <div className="text-4xl text-purple-400/20">♪</div>
-            </div>
-          </div>
-
-          {/* Premium Header - Glass effect with dark theme */}
+          {/* Header */}
           <header className="glass sticky top-0 z-50 border-b border-white/10 backdrop-blur-xl">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
               <div className="flex h-20 items-center justify-between">
@@ -173,15 +73,15 @@ export default function Home() {
             </div>
           </header>
 
-          {/* Main Content - Generous spacing for premium feel */}
+          {/* Main Content */}
           <main className="relative mx-auto max-w-7xl px-6 py-12 lg:px-8">
             <div className="space-y-16">
               {/* Tabs */}
               <div className="flex flex-wrap items-center gap-3">
                 <button
-                  onClick={() => setActiveTab("spotify")}
+                  onClick={() => dashboard.setActiveTab("spotify")}
                   className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                    activeTab === "spotify"
+                    dashboard.activeTab === "spotify"
                       ? "bg-white/15 text-white ring-2 ring-purple-400/70"
                       : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
                   }`}
@@ -189,9 +89,9 @@ export default function Home() {
                   Spotify Library
                 </button>
                 <button
-                  onClick={() => setActiveTab("youtube")}
+                  onClick={() => dashboard.setActiveTab("youtube")}
                   className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                    activeTab === "youtube"
+                    dashboard.activeTab === "youtube"
                       ? "bg-white/15 text-white ring-2 ring-purple-400/70"
                       : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
                   }`}
@@ -201,23 +101,24 @@ export default function Home() {
               </div>
 
               {/* Selected Collection Tracks */}
-              {activeTab === "spotify" &&
-                selectedCollectionId &&
-                collectionsData && (
+              {dashboard.activeTab === "spotify" &&
+                dashboard.selectedCollectionId &&
+                dashboard.collectionsData && (
                   <section className="animate-fade-in space-y-8">
                     <div className="flex items-center justify-between">
                       <div className="flex items-baseline gap-4">
                         <h2 className="text-3xl font-light tracking-tight text-white">
-                          {collectionsData.collections.find(
-                            (c) => c.id === selectedCollectionId,
+                          {dashboard.collectionsData.collections.find(
+                            (c) => c.id === dashboard.selectedCollectionId,
                           )?.name ?? "Collection"}
                         </h2>
                         <span className="text-sm text-gray-400">
-                          {totalToPass} {totalToPass === 1 ? "track" : "tracks"}
+                          {dashboard.totalTracks}{" "}
+                          {dashboard.totalTracks === 1 ? "track" : "tracks"}
                         </span>
                       </div>
                       <button
-                        onClick={() => handleCollectionSelect(null)}
+                        onClick={() => dashboard.handleCollectionSelect(null)}
                         className="inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
                       >
                         <svg
@@ -238,263 +139,45 @@ export default function Home() {
                     </div>
                     <TrackMatcher
                       collection={
-                        collectionsData.collections.find(
-                          (c) => c.id === selectedCollectionId,
+                        dashboard.collectionsData.collections.find(
+                          (c) => c.id === dashboard.selectedCollectionId,
                         )!
                       }
-                      tracks={tracksToPass}
-                      isLoading={isInitialLoading}
-                      isPaginating={isPaginating}
+                      tracks={dashboard.tracks}
+                      isLoading={dashboard.isInitialLoading}
+                      isPaginating={dashboard.isPaginating}
                       showHeader={false}
-                      currentPage={tracksPage}
-                      totalItems={totalToPass}
-                      itemsPerPage={TRACKS_PER_PAGE}
-                      onPageChange={handleTracksPageChange}
+                      currentPage={dashboard.tracksPage}
+                      totalItems={dashboard.totalTracks}
+                      itemsPerPage={dashboard.tracksPerPage}
+                      onPageChange={dashboard.setTracksPage}
                     />
                   </section>
                 )}
 
               {/* Collections List */}
-              {activeTab === "spotify" && !selectedCollectionId && (
-                <section className="animate-fade-in space-y-8">
-                  <CollectionList
-                    collections={collectionsData?.collections ?? []}
-                    onCollectionClick={handleCollectionSelect}
-                    isLoading={collectionsLoading}
-                    currentPage={collectionsPage}
-                    totalItems={collectionsData?.total ?? 0}
-                    itemsPerPage={COLLECTIONS_PER_PAGE}
-                    onPageChange={handleCollectionsPageChange}
-                  />
-                </section>
-              )}
+              {dashboard.activeTab === "spotify" &&
+                !dashboard.selectedCollectionId && (
+                  <section className="animate-fade-in space-y-8">
+                    <CollectionList
+                      collections={dashboard.collectionsData?.collections ?? []}
+                      onCollectionClick={dashboard.handleCollectionSelect}
+                      isLoading={dashboard.collectionsLoading}
+                      currentPage={dashboard.collectionsPage}
+                      totalItems={dashboard.collectionsData?.total ?? 0}
+                      itemsPerPage={dashboard.collectionsPerPage}
+                      onPageChange={dashboard.setCollectionsPage}
+                    />
+                  </section>
+                )}
 
-              {activeTab === "youtube" && <YouTubeMp3 />}
+              {dashboard.activeTab === "youtube" && <YouTubeMp3 />}
             </div>
           </main>
         </div>
       ) : (
-        <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-          {/* Animated Background Elements */}
-          <div className="absolute inset-0">
-            <div className="absolute top-1/4 left-1/4 h-72 w-72 animate-pulse rounded-full bg-purple-500/10 blur-3xl"></div>
-            <div className="absolute right-1/4 bottom-1/4 h-96 w-96 animate-pulse rounded-full bg-blue-500/10 blur-3xl delay-1000"></div>
-            <div className="absolute top-1/2 left-1/2 h-64 w-64 animate-pulse rounded-full bg-pink-500/10 blur-3xl delay-500"></div>
-          </div>
-
-          {/* Floating Music Notes Animation */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-20 left-10 animate-bounce delay-300">
-              <div className="text-4xl text-purple-400/30">♪</div>
-            </div>
-            <div className="absolute top-40 right-20 animate-bounce delay-700">
-              <div className="text-3xl text-blue-400/30">♫</div>
-            </div>
-            <div className="absolute bottom-32 left-20 animate-bounce delay-1000">
-              <div className="text-5xl text-pink-400/30">♬</div>
-            </div>
-            <div className="absolute right-10 bottom-20 animate-bounce delay-500">
-              <div className="text-4xl text-purple-400/30">♪</div>
-            </div>
-          </div>
-
-          <div className="relative z-10 flex min-h-screen items-center justify-center p-6">
-            <div className="w-full max-w-md space-y-8">
-              {/* Hero Section with Icon */}
-              <div className="space-y-6 text-center">
-                {/* Project Icon - Prominent Display */}
-                <div className="flex justify-center">
-                  <div className="relative">
-                    <div className="absolute inset-0 animate-pulse rounded-3xl bg-gradient-to-r from-purple-500 to-blue-500 opacity-60 blur-2xl"></div>
-                    <div className="relative rounded-3xl bg-gradient-to-r from-purple-600 to-blue-600 p-6 shadow-2xl">
-                      <Image
-                        src="/tuneport.png"
-                        alt="Tuneport Logo"
-                        width={120}
-                        height={120}
-                        className="rounded-2xl"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Brand Name with Gradient */}
-                <div className="space-y-2">
-                  <h1 className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-6xl font-bold text-transparent">
-                    Tuneport
-                  </h1>
-                  <div className="mx-auto h-1 w-24 rounded-full bg-gradient-to-r from-purple-500 to-blue-500"></div>
-                </div>
-
-                {/* Tagline */}
-                <div className="space-y-3">
-                  <p className="text-xl leading-relaxed font-light text-gray-300">
-                    Transform your Spotify library into
-                    <span className="font-semibold text-white">
-                      {" "}
-                      downloadable MP3s
-                    </span>
-                  </p>
-                  <p className="mx-auto max-w-sm text-sm leading-relaxed text-gray-400">
-                    Connect your Spotify account and turn your favorite tracks
-                    into high-quality downloads with just a few clicks
-                  </p>
-                </div>
-              </div>
-
-              {/* Enhanced Auth Card */}
-              <AuthShowcase />
-
-              {/* Feature Grid with Icons */}
-              <div className="grid grid-cols-3 gap-6 pt-4">
-                <div className="group space-y-3 rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-sm transition-all duration-300 hover:bg-white/10">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-emerald-500 shadow-lg transition-transform group-hover:scale-110">
-                    <svg
-                      className="h-6 w-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="text-xs font-medium text-gray-300">
-                    Lightning Fast
-                  </div>
-                </div>
-
-                <div className="group space-y-3 rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-sm transition-all duration-300 hover:bg-white/10">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg transition-transform group-hover:scale-110">
-                    <svg
-                      className="h-6 w-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="text-xs font-medium text-gray-300">
-                    Secure & Private
-                  </div>
-                </div>
-
-                <div className="group space-y-3 rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-sm transition-all duration-300 hover:bg-white/10">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg transition-transform group-hover:scale-110">
-                    <svg
-                      className="h-6 w-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="text-xs font-medium text-gray-300">
-                    High Quality
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="pt-4 text-center">
-                <p className="text-xs text-gray-500">
-                  Built with Next.js • Powered by Spotify & YouTube
-                </p>
-              </div>
-            </div>
-          </div>
-        </main>
+        <LandingPage />
       )}
     </>
-  );
-}
-
-function AuthShowcase() {
-  const { data: sessionData } = useSession();
-
-  return (
-    <div className="rounded-3xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-xl">
-      {sessionData?.user ? (
-        <div className="space-y-6 text-center">
-          <div className="flex flex-col items-center space-y-4">
-            {sessionData.user.image && (
-              <div className="relative">
-                <Image
-                  src={sessionData.user.image}
-                  alt="Profile"
-                  width={80}
-                  height={80}
-                  className="rounded-full shadow-lg ring-4 ring-white/20"
-                />
-                <div className="absolute -right-1 -bottom-1 h-6 w-6 rounded-full border-3 border-slate-900 bg-green-400 shadow-lg"></div>
-              </div>
-            )}
-            <div className="space-y-1">
-              <h3 className="text-xl font-semibold text-white">Welcome back</h3>
-              <p className="font-medium text-gray-300">
-                {sessionData.user.name}
-              </p>
-              <p className="text-sm text-gray-400">
-                Ready to download your music?
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => void signOut()}
-            className="w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:from-red-700 hover:to-red-800 hover:shadow-xl focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
-          >
-            Sign out
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-6 text-center">
-          <div className="space-y-3">
-            <h2 className="text-2xl font-bold text-white">
-              Connect with Spotify
-            </h2>
-            <p className="leading-relaxed text-gray-300">
-              Link your Spotify account to start downloading your favorite
-              tracks
-            </p>
-          </div>
-
-          <button
-            onClick={() => void signIn("spotify")}
-            className="group flex w-full items-center justify-center space-x-4 rounded-2xl bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-600 hover:to-green-700 hover:shadow-xl focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
-          >
-            <svg
-              className="h-6 w-6 transition-transform group-hover:scale-110"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.6-.12-.421.18-.78.6-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.24 1.081zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.42-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.781-.18-.601.18-1.2.78-1.381 4.5-1.411 11.64-1.151 15.12 1.621.48.3.599 1.019.24 1.5-.36.48-1.061.6-1.5.24z" />
-            </svg>
-            <span>Continue with Spotify</span>
-          </button>
-
-          <p className="text-xs leading-relaxed text-gray-400">
-            We only access your music library and playlists. Your data stays
-            secure and private.
-          </p>
-        </div>
-      )}
-    </div>
   );
 }

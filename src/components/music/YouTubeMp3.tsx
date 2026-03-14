@@ -1,10 +1,9 @@
-"use client";
-
 import { useEffect, useState, type FormEvent } from "react";
 
 import { api } from "~/utils/api";
-import { useDownloads } from "~/contexts/DownloadContext";
+import { useDownloadMutation } from "~/hooks/useDownloadMutation";
 import { MatchItem } from "~/components/music/MatchItem";
+import { DownloadActionBar } from "~/components/ui/DownloadActionBar";
 import { extractYouTubeVideoId, isYouTubeUrl } from "~/utils/youtube";
 
 export function YouTubeMp3() {
@@ -17,135 +16,50 @@ export function YouTubeMp3() {
   const [selectedVideoIds, setSelectedVideoIds] = useState<
     Record<string, boolean>
   >({});
-  const [matches, setMatches] = useState<
-    Array<{
-      videoId: string;
-      title: string;
-      channel: string;
-      duration: string;
-      thumbnail: string;
-      confidence: number;
-      explicit: boolean;
-    }>
-  >([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const { addJobs } = useDownloads();
+  const searchResult = api.youtube.searchYouTubeByQuery.useQuery(
+    { query: searchQuery, maxResults: displayLimit },
+    { enabled: mode === "search" && searchQuery.length > 0 },
+  );
 
-  useEffect(() => {
-    let isActive = true;
+  const resolveResult = api.youtube.resolveYouTubeVideo.useQuery(
+    { videoId },
+    { enabled: mode === "url" && videoId.length > 0 },
+  );
 
-    const runSearch = async () => {
-      if (mode === "search" && searchQuery.length > 0) {
-        setIsLoading(true);
-        setErrorMessage(null);
-        try {
-          const response = await fetch(
-            `/api/youtube/search?q=${encodeURIComponent(searchQuery)}&limit=${displayLimit}`,
-          );
-          const data = (await response.json()) as { matches?: unknown };
-          if (!response.ok) {
-            throw new Error(
-              (data as { message?: string }).message ??
-                "Failed to search YouTube",
-            );
-          }
+  const isLoading =
+    (mode === "search" && searchResult.isLoading) ||
+    (mode === "url" && resolveResult.isLoading);
 
-          const nextMatches = Array.isArray(data.matches)
-            ? (data.matches as typeof matches)
-            : [];
+  const errorMessage =
+    (mode === "search" && searchResult.error?.message) ||
+    (mode === "url" && resolveResult.error?.message) ||
+    null;
 
-          if (isActive) {
-            setMatches(nextMatches);
-          }
-        } catch (error) {
-          if (isActive) {
-            setMatches([]);
-            setErrorMessage(
-              error instanceof Error ? error.message : "Failed to search",
-            );
-          }
-        } finally {
-          if (isActive) {
-            setIsLoading(false);
-          }
-        }
-      }
+  const matches =
+    mode === "search"
+      ? (searchResult.data?.matches ?? [])
+      : mode === "url"
+        ? resolveResult.data?.match
+          ? [resolveResult.data.match]
+          : []
+        : [];
 
-      if (mode === "url" && videoId.length > 0) {
-        setIsLoading(true);
-        setErrorMessage(null);
-        try {
-          const response = await fetch(
-            `/api/youtube/resolve?videoId=${encodeURIComponent(videoId)}`,
-          );
-          const data = (await response.json()) as { match?: unknown };
-          if (!response.ok) {
-            throw new Error(
-              (data as { message?: string }).message ??
-                "Failed to resolve YouTube video",
-            );
-          }
-
-          const resolvedMatch = data.match ? [data.match] : [];
-          if (isActive) {
-            setMatches(resolvedMatch as typeof matches);
-          }
-        } catch (error) {
-          if (isActive) {
-            setMatches([]);
-            setErrorMessage(
-              error instanceof Error ? error.message : "Failed to resolve",
-            );
-          }
-        } finally {
-          if (isActive) {
-            setIsLoading(false);
-          }
-        }
-      }
-    };
-
-    void runSearch();
-
-    return () => {
-      isActive = false;
-    };
-  }, [mode, searchQuery, videoId, displayLimit]);
+  const resolvedMatch = resolveResult.data?.match;
 
   useEffect(() => {
-    if (mode === "url" && matches.length === 1) {
-      const match = matches[0];
-      if (match) {
-        setSelectedVideoIds({ [match.videoId]: true });
-      }
+    if (mode === "url" && resolvedMatch) {
+      setSelectedVideoIds({ [resolvedMatch.videoId]: true });
     }
-  }, [mode, matches]);
+  }, [mode, resolvedMatch]);
 
-  const downloadMutation = api.youtube.downloadTracks.useMutation({
-    onSuccess: (data) => {
-      const matchesById = new Map(
-        matches.map((match) => [match.videoId, match]),
-      );
-      const validJobs = data.jobs
-        .filter((job) => job.jobId)
-        .map((job) => {
-          const match = matchesById.get(job.videoId);
-          return {
-            jobId: job.jobId,
-            videoId: job.videoId,
-            trackName: job.trackName,
-            artistName: job.artistName,
-            allArtists: job.allArtists ?? (match ? [match.channel] : undefined),
-            artwork: match?.thumbnail,
-          };
-        });
-      addJobs(validJobs);
-    },
-    onError: (error) => {
-      alert(`Download failed: ${error.message}`);
-    },
+  const downloadMutation = useDownloadMutation((job) => {
+    const matchesById = new Map(matches.map((match) => [match.videoId, match]));
+    const match = matchesById.get(job.videoId);
+    return {
+      allArtists: match ? [match.channel] : undefined,
+      artwork: match?.thumbnail,
+    };
   });
 
   const handleSubmit = (event: FormEvent) => {
@@ -161,9 +75,9 @@ export function YouTubeMp3() {
       return;
     }
 
-    if (extractedVideoId || isYouTubeUrl(trimmed)) {
+    if (extractedVideoId) {
       setMode("url");
-      setVideoId(extractedVideoId ?? "");
+      setVideoId(extractedVideoId);
       setSearchQuery("");
     } else {
       setMode("search");
@@ -298,70 +212,12 @@ export function YouTubeMp3() {
         </div>
       </div>
 
-      {Object.keys(selectedVideoIds).length > 0 && (
-        <div className="glass animate-slide-in rounded-2xl border border-white/20 p-6 shadow-2xl backdrop-blur-xl">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="text-lg font-medium text-white">
-                {Object.keys(selectedVideoIds).length} video
-                {Object.keys(selectedVideoIds).length === 1 ? "" : "s"} ready
-              </div>
-              <div className="text-sm text-gray-400">
-                Selected and ready for download
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setSelectedVideoIds({})}
-                className="rounded-xl border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-gray-300 backdrop-blur-sm transition-all duration-200 hover:border-white/30 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
-              >
-                Clear All
-              </button>
-              <button
-                onClick={handleDownload}
-                disabled={downloadMutation.isPending}
-                className="flex items-center space-x-2 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:from-purple-600 hover:to-blue-600 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {downloadMutation.isPending ? (
-                  <>
-                    <svg
-                      className="h-4 w-4 animate-spin"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                    <span>Starting Download...</span>
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
-                    </svg>
-                    <span>Download Selected</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DownloadActionBar
+        selectedCount={Object.keys(selectedVideoIds).length}
+        isPending={downloadMutation.isPending}
+        onClear={() => setSelectedVideoIds({})}
+        onDownload={handleDownload}
+      />
     </section>
   );
 }

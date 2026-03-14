@@ -1,3 +1,17 @@
+import type { DownloadJobStatus, DownloadResult } from "~/server/queue/types";
+import type { YouTubeSearchResult } from "~/server/services/youtubeService";
+export type { DownloadJobStatus, DownloadResult, YouTubeSearchResult };
+
+/** Create a download ID from user ID, video ID, and current timestamp. */
+export function createDownloadId(userId: string, videoId: string): string {
+  return `${userId}-${videoId}-${Date.now()}`;
+}
+
+/** Check whether a download/job ID belongs to the given user. */
+export function isOwnedByUser(id: string, userId: string): boolean {
+  return id.startsWith(userId + "-");
+}
+
 export interface Collection {
   id: string;
   name: string;
@@ -22,16 +36,6 @@ export interface Track {
   spotify_url?: string;
 }
 
-export interface YouTubeSearchResult {
-  videoId: string;
-  title: string;
-  channel: string;
-  duration: string;
-  thumbnail: string;
-  confidence: number;
-  explicit: boolean;
-}
-
 export interface DownloadJob {
   jobId: string;
   videoId: string;
@@ -39,40 +43,9 @@ export interface DownloadJob {
   artistName: string;
   allArtists?: string[];
   artwork?: string;
-  status: string;
+  status: DownloadJobStatus;
   progress: number;
-  result?: {
-    videoId: string;
-    trackName: string;
-    artistName: string;
-    downloadId: string;
-    fileSize: number;
-    duration: number;
-    success: boolean;
-    error?: string;
-  };
+  result?: DownloadResult;
   failedReason?: string;
-  error?: string;
-}
-
-export interface DownloadJobData {
-  videoId: string;
-  trackName: string;
-  artistName: string;
-  allArtists?: string[];
-  artwork?: string;
-  useArtistInFilename?: boolean;
-  userId: string;
-  jobId: string;
-}
-
-export interface DownloadResult {
-  videoId: string;
-  trackName: string;
-  artistName: string;
-  downloadId: string;
-  fileSize: number;
-  duration: number;
-  success: boolean;
   error?: string;
 }

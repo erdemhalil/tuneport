@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDownloads } from "~/contexts/DownloadContext";
+import { triggerBrowserDownload } from "~/utils/download";
 import { JobItem } from "./JobItem";
 
 export function DownloadProgressWidget() {
@@ -15,65 +16,27 @@ export function DownloadProgressWidget() {
         job.result?.downloadId &&
         !downloadedJobs.has(job.jobId)
       ) {
-        console.log(
-          `Auto-downloading completed job: ${job.jobId} - ${job.trackName}`,
+        triggerBrowserDownload(
+          `/api/download/${job.result.downloadId}`,
+          `${job.artistName} - ${job.trackName}.mp3`,
         );
-        const downloadUrl = `/api/download/${job.result.downloadId}`;
-        console.log(`Download URL: ${downloadUrl}`);
-
-        try {
-          const link = document.createElement("a");
-          link.href = downloadUrl;
-          link.download = `${job.artistName} - ${job.trackName}.mp3`;
-          link.style.display = "none";
-
-          // Add to DOM temporarily
-          document.body.appendChild(link);
-
-          console.log("Clicking download link...");
-          link.click();
-
-          // Remove from DOM
-          document.body.removeChild(link);
-          console.log("Download link clicked and removed");
-
-          // Mark as downloaded to avoid duplicate downloads
-          setDownloadedJobs((prev) => new Set(prev).add(job.jobId));
-        } catch (error) {
-          console.error("Download failed:", error);
-          console.log("Falling back to opening in new tab");
-          window.open(downloadUrl, "_blank");
-          setDownloadedJobs((prev) => new Set(prev).add(job.jobId));
-        }
+        setDownloadedJobs((prev) => new Set(prev).add(job.jobId));
       }
     });
   }, [jobs, downloadedJobs]);
 
-  const triggerDownload = (
-    downloadId: string,
-    trackName?: string,
-    artistName?: string,
-  ) => {
-    console.log(`Manual download triggered for: ${downloadId}`);
-    const downloadUrl = `/api/download/${downloadId}`;
-    console.log(`Manual download URL: ${downloadUrl}`);
-
-    try {
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download =
-        trackName && artistName ? `${artistName} - ${trackName}.mp3` : "";
-      link.className = "hidden";
-      document.body.appendChild(link);
-      console.log("Clicking manual download link...");
-      link.click();
-      document.body.removeChild(link);
-      console.log("Manual download link clicked and removed");
-    } catch (error) {
-      console.error("Manual download failed:", error);
-      console.log("Falling back to opening in new tab");
-      window.open(downloadUrl, "_blank");
-    }
+  const handleClearCompleted = () => {
+    const completedIds = new Set(
+      jobs.filter((j) => j.status === "completed").map((j) => j.jobId),
+    );
+    setDownloadedJobs((prev) => {
+      const pruned = new Set<string>();
+      for (const id of prev) {
+        if (!completedIds.has(id)) pruned.add(id);
+      }
+      return pruned;
+    });
+    clearCompleted();
   };
 
   if (jobs.length === 0) {
@@ -161,33 +124,37 @@ export function DownloadProgressWidget() {
             <div className="space-y-1">
               <h3 className="text-lg font-semibold text-white">Downloads</h3>
               <div className="text-sm text-neutral-300">
-                {activeJobs.length > 0 && (
-                  <span className="font-medium text-blue-400">
-                    {activeJobs.length} active
-                  </span>
-                )}
-                {activeJobs.length > 0 && completedJobs.length > 0 && (
-                  <span> • </span>
-                )}
-                {completedJobs.length > 0 && (
-                  <span className="font-medium text-emerald-400">
-                    {completedJobs.length} completed
-                  </span>
-                )}
-                {(activeJobs.length > 0 || completedJobs.length > 0) &&
-                  failedJobs.length > 0 && <span> • </span>}
-                {failedJobs.length > 0 && (
-                  <span className="font-medium text-red-400">
-                    {failedJobs.length} failed
-                  </span>
-                )}
+                {[
+                  activeJobs.length > 0 && (
+                    <span key="active" className="font-medium text-blue-400">
+                      {activeJobs.length} active
+                    </span>
+                  ),
+                  completedJobs.length > 0 && (
+                    <span
+                      key="completed"
+                      className="font-medium text-emerald-400"
+                    >
+                      {completedJobs.length} completed
+                    </span>
+                  ),
+                  failedJobs.length > 0 && (
+                    <span key="failed" className="font-medium text-red-400">
+                      {failedJobs.length} failed
+                    </span>
+                  ),
+                ]
+                  .filter(Boolean)
+                  .flatMap((el, i) =>
+                    i > 0 ? [<span key={`sep-${i}`}> &bull; </span>, el] : [el],
+                  )}
               </div>
             </div>
           </div>
           <div className="flex items-center space-x-2">
             {completedJobs.length > 0 && (
               <button
-                onClick={clearCompleted}
+                onClick={handleClearCompleted}
                 className="inline-flex items-center justify-center rounded-xl bg-white/10 p-2.5 text-neutral-300 transition-all duration-200 hover:bg-white/20 hover:text-white"
                 title="Clear completed downloads"
               >
@@ -230,7 +197,7 @@ export function DownloadProgressWidget() {
 
         {/* Jobs List */}
         <div
-          className={`max-h-[500px] overflow-y-auto ${isExpanded ? "max-h-none" : ""}`}
+          className={`overflow-y-auto ${isExpanded ? "max-h-none" : "max-h-[500px]"}`}
         >
           {jobs.map((job) => (
             <JobItem
@@ -240,10 +207,11 @@ export function DownloadProgressWidget() {
               onDownload={
                 job.status === "completed" && job.result?.downloadId
                   ? () =>
-                      triggerDownload(
-                        job.result!.downloadId,
-                        job.trackName,
-                        job.artistName,
+                      triggerBrowserDownload(
+                        `/api/download/${job.result?.downloadId}`,
+                        job.trackName && job.artistName
+                          ? `${job.artistName} - ${job.trackName}.mp3`
+                          : undefined,
                       )
                   : undefined
               }

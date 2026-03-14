@@ -1,5 +1,6 @@
 import { type DefaultSession, type NextAuthOptions } from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
+import { env } from "~/env";
 
 interface SpotifyProfile {
   id: string;
@@ -27,12 +28,11 @@ declare module "next-auth" {
       id: string;
       // Spotify-specific properties
       spotifyId?: string;
-      // ...other properties
-      // role: UserRole;
     } & DefaultSession["user"];
     accessToken?: string;
     refreshToken?: string;
     expiresAt?: number;
+    error?: string;
   }
 
   interface JWT {
@@ -40,6 +40,7 @@ declare module "next-auth" {
     refreshToken?: string;
     expiresAt?: number;
     providerAccountId?: string;
+    error?: string;
   }
 }
 
@@ -51,8 +52,8 @@ declare module "next-auth" {
 export const authConfig: NextAuthOptions = {
   providers: [
     SpotifyProvider({
-      clientId: process.env.SPOTIFY_CLIENT_ID!,
-      clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
+      clientId: env.SPOTIFY_CLIENT_ID,
+      clientSecret: env.SPOTIFY_CLIENT_SECRET,
       authorization: {
         url: "https://accounts.spotify.com/authorize",
         params: {
@@ -62,27 +63,27 @@ export const authConfig: NextAuthOptions = {
         },
       },
     }),
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
   ],
   callbacks: {
     session: ({ session, token }) => {
       return {
         ...session,
-        accessToken: token.accessToken as string,
-        refreshToken: token.refreshToken as string,
-        expiresAt: token.expiresAt as number,
+        accessToken:
+          typeof token.accessToken === "string" ? token.accessToken : undefined,
+        refreshToken:
+          typeof token.refreshToken === "string"
+            ? token.refreshToken
+            : undefined,
+        expiresAt:
+          typeof token.expiresAt === "number" ? token.expiresAt : undefined,
+        error: typeof token.error === "string" ? token.error : undefined,
         user: {
           ...session.user,
-          id: token.sub!,
-          spotifyId: token.providerAccountId as string,
+          id: token.sub ?? "",
+          spotifyId:
+            typeof token.providerAccountId === "string"
+              ? token.providerAccountId
+              : undefined,
           name: token.name ?? session.user.name,
           image: token.picture ?? session.user.image,
         },
@@ -96,8 +97,17 @@ export const authConfig: NextAuthOptions = {
         token.providerAccountId = account.providerAccountId;
       }
 
-      const expiresAt = token.expiresAt as number | undefined;
+      const expiresAt =
+        typeof token.expiresAt === "number" ? token.expiresAt : undefined;
       if (expiresAt && Date.now() >= expiresAt) {
+        const refreshToken =
+          typeof token.refreshToken === "string"
+            ? token.refreshToken
+            : undefined;
+        if (!refreshToken) {
+          token.error = "RefreshTokenError";
+          return token;
+        }
         try {
           const response = await fetch(
             "https://accounts.spotify.com/api/token",
@@ -108,9 +118,9 @@ export const authConfig: NextAuthOptions = {
               },
               body: new URLSearchParams({
                 grant_type: "refresh_token",
-                refresh_token: token.refreshToken as string,
-                client_id: process.env.SPOTIFY_CLIENT_ID!,
-                client_secret: process.env.SPOTIFY_CLIENT_SECRET!,
+                refresh_token: refreshToken,
+                client_id: env.SPOTIFY_CLIENT_ID,
+                client_secret: env.SPOTIFY_CLIENT_SECRET,
               }),
             },
           );
@@ -119,9 +129,16 @@ export const authConfig: NextAuthOptions = {
             const data = (await response.json()) as TokenResponse;
             token.accessToken = data.access_token;
             token.expiresAt = Date.now() + data.expires_in * 1000;
+          } else {
+            console.error(
+              "Token refresh returned non-OK status:",
+              response.status,
+            );
+            token.error = "RefreshTokenError";
           }
         } catch (error) {
           console.error("Token refresh failed:", error);
+          token.error = "RefreshTokenError";
         }
       }
 

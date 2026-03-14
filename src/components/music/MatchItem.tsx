@@ -1,15 +1,10 @@
 import Image from "next/image";
+import type { YouTubeSearchResult } from "~/utils/types";
+import { formatDuration } from "~/utils/duration";
+import { CheckmarkBadge } from "~/components/ui/CheckmarkBadge";
 
 interface MatchItemProps {
-  match: {
-    videoId: string;
-    title: string;
-    channel: string;
-    duration: string;
-    thumbnail: string;
-    confidence: number;
-    explicit: boolean;
-  };
+  match: YouTubeSearchResult;
   isSelected: boolean;
   onSelect: () => void;
   onPreview: () => void;
@@ -21,20 +16,6 @@ export function MatchItem({
   onSelect,
   onPreview,
 }: MatchItemProps) {
-  const formatDuration = (duration: string) => {
-    const match = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(duration);
-    if (!match) return "0:00";
-
-    const hours = parseInt(match[1] ?? "0");
-    const minutes = parseInt(match[2] ?? "0");
-    const seconds = parseInt(match[3] ?? "0");
-
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-    }
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
-
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 80) return "text-emerald-400 bg-emerald-500/20";
     if (confidence >= 60) return "text-yellow-400 bg-yellow-500/20";
@@ -72,6 +53,11 @@ export function MatchItem({
               E
             </span>
           )}
+          {match.clean && (
+            <span className="inline-flex items-center rounded bg-blue-500/20 px-1.5 py-0.5 text-xs font-medium text-blue-400">
+              C
+            </span>
+          )}
         </div>
         <p className="truncate text-xs text-gray-400">{match.channel}</p>
         <div className="mt-1 flex items-center space-x-2">
@@ -102,21 +88,7 @@ export function MatchItem({
           </svg>
         </button>
 
-        {isSelected && (
-          <div className="flex h-4 w-4 items-center justify-center rounded-full bg-purple-500">
-            <svg
-              className="h-3 w-3 text-white"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-        )}
+        {isSelected && <CheckmarkBadge color="purple" size="sm" />}
       </div>
     </div>
   );

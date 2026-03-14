@@ -1,9 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { mapBullMQState } from "~/server/services/downloadService";
 import {
   mapSpotifyTrack,
+  SpotifyService,
   type SpotifyTrack,
 } from "~/server/services/spotifyService";
+import type { Session } from "next-auth";
 
 describe("mapBullMQState", () => {
   it("maps 'waiting' to 'waiting'", () => {
@@ -104,5 +106,56 @@ describe("mapSpotifyTrack", () => {
     const cleanTrack = { ...baseTrack, explicit: false };
     expect(mapSpotifyTrack({ track: cleanTrack }).explicit).toBe(false);
     expect(mapSpotifyTrack({ track: baseTrack }).explicit).toBe(true);
+  });
+});
+
+describe("SpotifyService.getCollections", () => {
+  it("accepts playlists where owner.display_name and images are null", async () => {
+    const originalFetch = global.fetch;
+
+    const likedSongsPayload = {
+      items: [],
+      total: 42,
+      limit: 1,
+      offset: 0,
+    };
+
+    const playlistsPayload = {
+      items: [
+        {
+          id: "playlist-1",
+          name: "No Owner Name Playlist",
+          description: null,
+          images: null,
+          tracks: { total: 3 },
+          owner: { display_name: null },
+        },
+      ],
+      total: 1,
+      limit: 20,
+      offset: 0,
+    };
+
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(likedSongsPayload), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(playlistsPayload), { status: 200 }),
+      );
+
+    global.fetch = fetchMock;
+
+    try {
+      const service = new SpotifyService({ accessToken: "token" } as Session);
+      const result = await service.getCollections(20, 0);
+
+      expect(result.collections).toHaveLength(2);
+      expect(result.collections[1]?.owner).toBe("Spotify User");
+      expect(result.collections[1]?.image).toBeNull();
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 });

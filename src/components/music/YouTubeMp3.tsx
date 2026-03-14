@@ -5,6 +5,7 @@ import { useDownloadMutation } from "~/hooks/useDownloadMutation";
 import { MatchItem } from "~/components/music/MatchItem";
 import { DownloadActionBar } from "~/components/ui/DownloadActionBar";
 import { extractYouTubeVideoId, isYouTubeUrl } from "~/utils/youtube";
+import { validateDownloadSelectionCount } from "~/utils/downloadSelection";
 
 export function YouTubeMp3() {
   const [inputValue, setInputValue] = useState("");
@@ -105,13 +106,12 @@ export function YouTubeMp3() {
       (match) => selectedVideoIds[match.videoId],
     );
 
-    if (selectedMatches.length === 0) {
-      alert("No videos selected for download");
-      return;
-    }
-
-    if (selectedMatches.length > 50) {
-      alert("Cannot download more than 50 videos at once");
+    const validationError = validateDownloadSelectionCount(
+      selectedMatches.length,
+      "videos",
+    );
+    if (validationError) {
+      alert(validationError);
       return;
     }
 

@@ -6,6 +6,7 @@ import {
   enqueueDownloads,
   getDownloadStatus,
   cleanupDownloads,
+  downloadTrackInputSchema,
 } from "~/server/services/downloadService";
 
 export const youtubeRouter = createTRPCRouter({
@@ -49,16 +50,7 @@ export const youtubeRouter = createTRPCRouter({
   downloadTracks: protectedProcedure
     .input(
       z.object({
-        tracks: z.array(
-          z.object({
-            videoId: z.string(),
-            trackName: z.string(),
-            artistName: z.string(),
-            allArtists: z.array(z.string()).optional(),
-            artwork: z.string().optional(),
-            useArtistInFilename: z.boolean().optional(),
-          }),
-        ),
+        tracks: z.array(downloadTrackInputSchema),
       }),
     )
     .mutation(async ({ ctx, input }) => {

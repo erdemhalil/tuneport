@@ -32,6 +32,36 @@ export interface VideoMetadata {
   selfDeclaredMadeForKids?: boolean;
 }
 
+interface YouTubeResultInput {
+  videoId: string;
+  title: string;
+  channel: string;
+  duration: string;
+  thumbnail: string;
+  confidence: number;
+  madeForKids?: boolean;
+  selfDeclaredMadeForKids?: boolean;
+}
+
+const youTubeSearchResultSchema = z.object({
+  videoId: z.string(),
+  title: z.string(),
+  channel: z.string(),
+  duration: z.string(),
+  thumbnail: z.string(),
+  confidence: z.number(),
+  explicit: z.boolean(),
+  clean: z.boolean(),
+});
+
+const cachedSearchMatchesSchema = z.object({
+  matches: z.array(youTubeSearchResultSchema),
+});
+
+const cachedResolvedVideoSchema = z.object({
+  match: youTubeSearchResultSchema.nullable(),
+});
+
 export function calculateDurationConfidence(
   spotifyDurationMs: number,
   youtubeDurationSec: number,
@@ -41,7 +71,7 @@ export function calculateDurationConfidence(
   const maxDiff = Math.max(spotifyDurationSec, youtubeDurationSec) * 0.1; // 10% tolerance
 
   if (maxDiff === 0) {
-    return spotifyDurationSec === youtubeDurationSec ? 100 : 0;
+    return 100;
   }
 
   return Math.max(0, Math.min(100, 100 - (diff / maxDiff) * 100));
@@ -80,6 +110,28 @@ export function isYouTubeContentClean(meta: VideoMetadata): boolean {
   return false;
 }
 
+function buildYouTubeSearchResult(
+  input: YouTubeResultInput,
+): YouTubeSearchResult {
+  const metadata: VideoMetadata = {
+    title: input.title,
+    channel: input.channel,
+    madeForKids: input.madeForKids,
+    selfDeclaredMadeForKids: input.selfDeclaredMadeForKids,
+  };
+
+  return {
+    videoId: input.videoId,
+    title: input.title,
+    channel: input.channel,
+    duration: input.duration,
+    thumbnail: input.thumbnail,
+    confidence: input.confidence,
+    explicit: isYouTubeContentExplicit(metadata),
+    clean: isYouTubeContentClean(metadata),
+  };
+}
+
 /** Zod schema for YouTube Data API v3 search.list response */
 const youTubeSearchResponseSchema = z.object({
   items: z.array(
@@ -97,11 +149,18 @@ const youTubeSearchResponseSchema = z.object({
   ),
 });
 
-type YouTubeSearchResponse = z.infer<typeof youTubeSearchResponseSchema>;
-
-/** Zod schema for a single YouTube video item from videos.list */
-const youTubeVideoItemSchema = z.object({
+/** Zod schema for a videos.list item when requesting only contentDetails and status */
+const youTubeVideoSummaryItemSchema = z.object({
   id: z.string(),
+  contentDetails: z.object({ duration: z.string() }),
+  status: z.object({
+    madeForKids: z.boolean().optional(),
+    selfDeclaredMadeForKids: z.boolean().optional(),
+  }),
+});
+
+/** Zod schema for a videos.list item when requesting snippet, contentDetails, and status */
+const youTubeVideoFullItemSchema = youTubeVideoSummaryItemSchema.extend({
   snippet: z.object({
     title: z.string(),
     channelTitle: z.string(),
@@ -110,21 +169,22 @@ const youTubeVideoItemSchema = z.object({
       default: z.object({ url: z.string() }),
     }),
   }),
-  contentDetails: z.object({ duration: z.string() }),
-  status: z.object({
-    madeForKids: z.boolean().optional(),
-    selfDeclaredMadeForKids: z.boolean().optional(),
-  }),
 });
 
-/** Zod schema for YouTube Data API v3 videos.list response */
-const youTubeVideoDetailsResponseSchema = z.object({
-  items: z.array(youTubeVideoItemSchema),
+/** Zod schema for YouTube Data API v3 videos.list response without snippet */
+const youTubeVideoSummaryResponseSchema = z.object({
+  items: z.array(youTubeVideoSummaryItemSchema),
 });
 
-type YouTubeVideoDetailsResponse = z.infer<
-  typeof youTubeVideoDetailsResponseSchema
+/** Zod schema for YouTube Data API v3 videos.list response with snippet */
+const youTubeVideoFullResponseSchema = z.object({
+  items: z.array(youTubeVideoFullItemSchema),
+});
+
+type YouTubeVideoSummaryResponse = z.infer<
+  typeof youTubeVideoSummaryResponseSchema
 >;
+type YouTubeVideoFullResponse = z.infer<typeof youTubeVideoFullResponseSchema>;
 
 export class YouTubeService {
   private session: Session;
@@ -194,24 +254,26 @@ export class YouTubeService {
     return parsed.data;
   }
 
+  /**
+   * Best-effort cache wrapper.
+   *
+   * Reads are validated with `schema`. If Redis is unavailable or cached data
+   * fails validation, the method silently falls back to `fetcher()`.
+   */
   private async cachedFetch<T>(
     cacheKey: string,
     fetcher: () => Promise<T>,
-    schema?: ZodType<T>,
+    schema: ZodType<T>,
   ): Promise<T> {
     try {
       const cachedResult = await getRedisConnection().get(cacheKey);
       if (cachedResult) {
         const parsed: unknown = JSON.parse(cachedResult);
-        if (schema) {
-          const validated = schema.safeParse(parsed);
-          if (validated.success) {
-            return validated.data;
-          }
-          console.warn("Cached data failed validation, refetching:", cacheKey);
-        } else {
-          return parsed as T;
+        const validated = schema.safeParse(parsed);
+        if (validated.success) {
+          return validated.data;
         }
+        console.warn("Cached data failed validation, refetching:", cacheKey);
       }
     } catch (error) {
       console.warn("Redis cache read error:", error);
@@ -238,69 +300,60 @@ export class YouTubeService {
     const searchQuery = `${input.artistName} ${input.trackName} autogenerated`;
     const cacheKey = `youtube:search:${searchQuery}:${input.durationMs}`;
 
-    return this.cachedFetch(cacheKey, async () => {
-      const searchData = await this.fetchYouTubeApi(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=5`,
-        "Search",
-        youTubeSearchResponseSchema,
-      );
+    return this.cachedFetch(
+      cacheKey,
+      async () => {
+        const searchData = await this.fetchYouTubeApi(
+          `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=5`,
+          "Search",
+          youTubeSearchResponseSchema,
+        );
 
-      if (!searchData.items || searchData.items.length === 0) {
-        return { matches: [] };
-      }
+        if (searchData.items.length === 0) {
+          return { matches: [] };
+        }
 
-      const videoIds = searchData.items
-        .map((item) => item.id.videoId)
-        .join(",");
-      const detailsData = await this.fetchYouTubeApi(
-        `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status&id=${videoIds}`,
-        "Videos",
-        youTubeVideoDetailsResponseSchema,
-      );
+        const videoIds = searchData.items
+          .map((item) => item.id.videoId)
+          .join(",");
+        const detailsData = await this.fetchYouTubeApi<YouTubeVideoSummaryResponse>(
+          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status&id=${videoIds}`,
+          "Videos",
+          youTubeVideoSummaryResponseSchema,
+        );
 
-      const detailsById = new Map(
-        detailsData.items.map((item) => [item.id, item]),
-      );
+        const detailsById = new Map(
+          detailsData.items.map((item) => [item.id, item]),
+        );
 
-      const matches: YouTubeSearchResult[] = searchData.items
-        .map((item) => {
-          const details = detailsById.get(item.id.videoId);
-          const youtubeDurationSec = details
-            ? parseIsoDuration(details.contentDetails.duration)
-            : 0;
-          const confidence = calculateDurationConfidence(
-            input.durationMs,
-            youtubeDurationSec,
-          );
-          const explicit = isYouTubeContentExplicit({
-            title: item.snippet.title,
-            channel: item.snippet.channelTitle,
-            madeForKids: details?.status.madeForKids,
-            selfDeclaredMadeForKids: details?.status.selfDeclaredMadeForKids,
-          });
-          const clean = isYouTubeContentClean({
-            title: item.snippet.title,
-            channel: item.snippet.channelTitle,
-            madeForKids: details?.status.madeForKids,
-            selfDeclaredMadeForKids: details?.status.selfDeclaredMadeForKids,
-          });
+        const matches: YouTubeSearchResult[] = searchData.items
+          .map((item) => {
+            const details = detailsById.get(item.id.videoId);
+            const youtubeDurationSec = details
+              ? parseIsoDuration(details.contentDetails.duration)
+              : 0;
+            const confidence = calculateDurationConfidence(
+              input.durationMs,
+              youtubeDurationSec,
+            );
+            return buildYouTubeSearchResult({
+              videoId: item.id.videoId,
+              title: item.snippet.title,
+              channel: item.snippet.channelTitle,
+              duration: details?.contentDetails.duration ?? "PT0S",
+              thumbnail: item.snippet.thumbnails.default.url,
+              confidence,
+              madeForKids: details?.status.madeForKids,
+              selfDeclaredMadeForKids: details?.status.selfDeclaredMadeForKids,
+            });
+          })
+          .sort((a, b) => b.confidence - a.confidence)
+          .slice(0, 5);
 
-          return {
-            videoId: item.id.videoId,
-            title: item.snippet.title,
-            channel: item.snippet.channelTitle,
-            duration: details?.contentDetails.duration ?? "PT0S",
-            thumbnail: item.snippet.thumbnails.default.url,
-            confidence,
-            explicit,
-            clean,
-          };
-        })
-        .sort((a, b) => b.confidence - a.confidence)
-        .slice(0, 5);
-
-      return { matches };
-    });
+        return { matches };
+      },
+      cachedSearchMatchesSchema,
+    );
   }
 
   async searchByQuery(
@@ -314,55 +367,50 @@ export class YouTubeService {
 
     const cacheKey = `youtube:query:${trimmedQuery}:${maxResults}`;
 
-    return this.cachedFetch(cacheKey, async () => {
-      const searchData = await this.fetchYouTubeApi(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(trimmedQuery)}&type=video&maxResults=${maxResults}`,
-        "Search",
-        youTubeSearchResponseSchema,
-      );
+    return this.cachedFetch(
+      cacheKey,
+      async () => {
+        const searchData = await this.fetchYouTubeApi(
+          `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(trimmedQuery)}&type=video&maxResults=${maxResults}`,
+          "Search",
+          youTubeSearchResponseSchema,
+        );
 
-      if (!searchData.items || searchData.items.length === 0) {
-        return { matches: [] };
-      }
+        if (searchData.items.length === 0) {
+          return { matches: [] };
+        }
 
-      const videoIds = searchData.items.map((item) => item.id.videoId);
-      const detailsData = await this.fetchYouTubeApi(
-        `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status&id=${videoIds.join(",")}`,
-        "Videos",
-        youTubeVideoDetailsResponseSchema,
-      );
+        const videoIds = searchData.items.map((item) => item.id.videoId);
+        const detailsData = await this.fetchYouTubeApi<YouTubeVideoSummaryResponse>(
+          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status&id=${videoIds.join(",")}`,
+          "Videos",
+          youTubeVideoSummaryResponseSchema,
+        );
 
-      const detailsById = new Map(
-        detailsData.items.map((item) => [item.id, item]),
-      );
+        const detailsById = new Map(
+          detailsData.items.map((item) => [item.id, item]),
+        );
 
-      const matches: YouTubeSearchResult[] = searchData.items.map((item) => {
-        const details = detailsById.get(item.id.videoId);
-        const meta: VideoMetadata = {
-          title: item.snippet.title,
-          channel: item.snippet.channelTitle,
-          madeForKids: details?.status.madeForKids,
-          selfDeclaredMadeForKids: details?.status.selfDeclaredMadeForKids,
-        };
-        const explicit = isYouTubeContentExplicit(meta);
-        const clean = isYouTubeContentClean(meta);
+        const matches: YouTubeSearchResult[] = searchData.items.map((item) => {
+          const details = detailsById.get(item.id.videoId);
+          return buildYouTubeSearchResult({
+            videoId: item.id.videoId,
+            title: item.snippet.title,
+            channel: item.snippet.channelTitle,
+            duration: details?.contentDetails.duration ?? "PT0S",
+            thumbnail:
+              item.snippet.thumbnails.medium?.url ??
+              item.snippet.thumbnails.default.url,
+            confidence: 80,
+            madeForKids: details?.status.madeForKids,
+            selfDeclaredMadeForKids: details?.status.selfDeclaredMadeForKids,
+          });
+        });
 
-        return {
-          videoId: item.id.videoId,
-          title: item.snippet.title,
-          channel: item.snippet.channelTitle,
-          duration: details?.contentDetails.duration ?? "PT0S",
-          thumbnail:
-            item.snippet.thumbnails.medium?.url ??
-            item.snippet.thumbnails.default.url,
-          confidence: 80,
-          explicit,
-          clean,
-        };
-      });
-
-      return { matches };
-    });
+        return { matches };
+      },
+      cachedSearchMatchesSchema,
+    );
   }
 
   /**
@@ -381,29 +429,21 @@ export class YouTubeService {
 
     const cacheKey = `youtube:video:${trimmedId}`;
 
-    return this.cachedFetch(cacheKey, async () => {
-      const detailsData = await this.fetchYouTubeApi(
-        `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,status&id=${encodeURIComponent(trimmedId)}`,
-        "Videos",
-        youTubeVideoDetailsResponseSchema,
-      );
+    return this.cachedFetch(
+      cacheKey,
+      async () => {
+        const detailsData = await this.fetchYouTubeApi<YouTubeVideoFullResponse>(
+          `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,status&id=${encodeURIComponent(trimmedId)}`,
+          "Videos",
+          youTubeVideoFullResponseSchema,
+        );
 
-      const item = detailsData.items?.[0];
-      if (!item) {
-        return { match: null };
-      }
+        const item = detailsData.items?.[0];
+        if (!item) {
+          return { match: null };
+        }
 
-      const videoMeta: VideoMetadata = {
-        title: item.snippet.title,
-        channel: item.snippet.channelTitle,
-        madeForKids: item.status.madeForKids,
-        selfDeclaredMadeForKids: item.status.selfDeclaredMadeForKids,
-      };
-      const explicit = isYouTubeContentExplicit(videoMeta);
-      const clean = isYouTubeContentClean(videoMeta);
-
-      return {
-        match: {
+        const match = buildYouTubeSearchResult({
           videoId: item.id,
           title: item.snippet.title,
           channel: item.snippet.channelTitle,
@@ -412,10 +452,15 @@ export class YouTubeService {
             item.snippet.thumbnails.medium?.url ??
             item.snippet.thumbnails.default.url,
           confidence: 100,
-          explicit,
-          clean,
-        },
-      };
-    });
+          madeForKids: item.status.madeForKids,
+          selfDeclaredMadeForKids: item.status.selfDeclaredMadeForKids,
+        });
+
+        return {
+          match,
+        };
+      },
+      cachedResolvedVideoSchema,
+    );
   }
 }

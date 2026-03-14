@@ -2,6 +2,11 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { YouTubeService } from "~/server/services/youtubeService";
+import {
+  enqueueDownloads,
+  getDownloadStatus,
+  cleanupDownloads,
+} from "~/server/services/downloadService";
 
 export const youtubeRouter = createTRPCRouter({
   searchYouTube: protectedProcedure
@@ -38,8 +43,7 @@ export const youtubeRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const youtubeService = new YouTubeService(ctx.session);
-      const match = await youtubeService.resolveVideoById(input.videoId);
-      return { match };
+      return youtubeService.resolveVideoById(input.videoId);
     }),
 
   downloadTracks: protectedProcedure
@@ -58,8 +62,7 @@ export const youtubeRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const youtubeService = new YouTubeService(ctx.session);
-      return youtubeService.downloadTracks(input.tracks);
+      return enqueueDownloads(input.tracks, ctx.session.user.id);
     }),
 
   getDownloadStatus: protectedProcedure
@@ -68,8 +71,8 @@ export const youtubeRouter = createTRPCRouter({
         jobIds: z.array(z.string()),
       }),
     )
-    .query(async ({ input }) => {
-      return YouTubeService.getDownloadStatus(input.jobIds);
+    .query(async ({ ctx, input }) => {
+      return getDownloadStatus(input.jobIds, ctx.session.user.id);
     }),
 
   cleanupDownloads: protectedProcedure
@@ -78,7 +81,7 @@ export const youtubeRouter = createTRPCRouter({
         downloadIds: z.array(z.string()),
       }),
     )
-    .mutation(async ({ input }) => {
-      return YouTubeService.cleanupDownloads(input.downloadIds);
+    .mutation(async ({ ctx, input }) => {
+      return cleanupDownloads(input.downloadIds, ctx.session.user.id);
     }),
 });

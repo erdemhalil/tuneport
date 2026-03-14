@@ -1,17 +1,11 @@
 import { TRPCError } from "@trpc/server";
+import { z, type ZodType } from "zod";
 import { env } from "~/env";
 import type { Session } from "next-auth";
-import IORedis from "ioredis";
-import { downloadQueue } from "~/server/queue/downloadQueue";
-import type { DownloadJobData, DownloadResult } from "~/server/queue/types";
-import { removeDownloadedFile } from "./redisService";
+import { getRedisConnection } from "~/server/lib/redis";
+import { parseIsoDuration } from "~/utils/duration";
 
-const redis = new IORedis({
-  host: process.env.REDIS_HOST ?? "localhost",
-  port: parseInt(process.env.REDIS_PORT ?? "6379"),
-  password: process.env.REDIS_PASSWORD,
-  maxRetriesPerRequest: null,
-});
+const CACHE_TTL_SECONDS = 1800;
 
 export interface YouTubeSearchResult {
   videoId: string;
@@ -21,82 +15,129 @@ export interface YouTubeSearchResult {
   thumbnail: string;
   confidence: number;
   explicit: boolean;
+  clean: boolean;
 }
 
-export interface YouTubeSearchInput {
+interface YouTubeSearchInput {
   trackName: string;
   artistName: string;
   albumName?: string;
   durationMs: number;
 }
 
-export class YouTubeService {
-  private session?: Session;
+export interface VideoMetadata {
+  title: string;
+  channel: string;
+  madeForKids?: boolean;
+  selfDeclaredMadeForKids?: boolean;
+}
 
-  constructor(session?: Session) {
-    this.session = session;
+export function calculateDurationConfidence(
+  spotifyDurationMs: number,
+  youtubeDurationSec: number,
+): number {
+  const spotifyDurationSec = Math.floor(spotifyDurationMs / 1000);
+  const diff = Math.abs(spotifyDurationSec - youtubeDurationSec);
+  const maxDiff = Math.max(spotifyDurationSec, youtubeDurationSec) * 0.1; // 10% tolerance
+
+  if (maxDiff === 0) {
+    return spotifyDurationSec === youtubeDurationSec ? 100 : 0;
   }
 
-  private parseYouTubeDuration(duration: string): number {
-    const match = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(duration);
-    if (!match) return 0;
+  return Math.max(0, Math.min(100, 100 - (diff / maxDiff) * 100));
+}
 
-    const hours = parseInt(match[1] ?? "0");
-    const minutes = parseInt(match[2] ?? "0");
-    const seconds = parseInt(match[3] ?? "0");
-
-    return hours * 3600 + minutes * 60 + seconds;
-  }
-
-  private calculateDurationConfidence(
-    spotifyDurationMs: number,
-    youtubeDurationSec: number,
-  ): number {
-    const spotifyDurationSec = Math.floor(spotifyDurationMs / 1000);
-    const diff = Math.abs(spotifyDurationSec - youtubeDurationSec);
-    const maxDiff = Math.max(spotifyDurationSec, youtubeDurationSec) * 0.1; // 10% tolerance
-
-    return Math.max(0, Math.min(100, 100 - (diff / maxDiff) * 100));
-  }
-
-  private isYouTubeContentExplicit(
-    title: string,
-    channel: string,
-    madeForKids?: boolean,
-    selfDeclaredMadeForKids?: boolean,
-  ): boolean {
-    if (madeForKids === true || selfDeclaredMadeForKids === true) {
-      return false;
-    }
-
-    const explicitKeywords = [
-      "explicit",
-      "clean",
-      "censored",
-      "radio edit",
-      "tv edit",
-    ];
-    const lowerTitle = title.toLowerCase();
-    const lowerChannel = channel.toLowerCase();
-
-    if (explicitKeywords.some((keyword) => lowerTitle.includes(keyword))) {
-      return true;
-    }
-
-    if (
-      lowerChannel.includes("clean") ||
-      lowerChannel.includes("radio") ||
-      lowerChannel.includes("tv")
-    ) {
-      return true;
-    }
-
+export function isYouTubeContentExplicit(meta: VideoMetadata): boolean {
+  if (meta.madeForKids === true || meta.selfDeclaredMadeForKids === true) {
     return false;
   }
 
-  async search(
-    input: YouTubeSearchInput,
-  ): Promise<{ matches: YouTubeSearchResult[] }> {
+  const lowerTitle = meta.title.toLowerCase();
+  return lowerTitle.includes("explicit");
+}
+
+export function isYouTubeContentClean(meta: VideoMetadata): boolean {
+  if (meta.madeForKids === true || meta.selfDeclaredMadeForKids === true) {
+    return true;
+  }
+
+  const cleanKeywords = ["clean", "censored", "radio edit", "tv edit"];
+  const lowerTitle = meta.title.toLowerCase();
+  const lowerChannel = meta.channel.toLowerCase();
+
+  if (cleanKeywords.some((keyword) => lowerTitle.includes(keyword))) {
+    return true;
+  }
+
+  if (
+    lowerChannel.includes("clean") ||
+    lowerChannel.includes("radio") ||
+    lowerChannel.includes("tv")
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/** Zod schema for YouTube Data API v3 search.list response */
+const youTubeSearchResponseSchema = z.object({
+  items: z.array(
+    z.object({
+      id: z.object({ videoId: z.string() }),
+      snippet: z.object({
+        title: z.string(),
+        channelTitle: z.string(),
+        thumbnails: z.object({
+          medium: z.object({ url: z.string() }).optional(),
+          default: z.object({ url: z.string() }),
+        }),
+      }),
+    }),
+  ),
+});
+
+type YouTubeSearchResponse = z.infer<typeof youTubeSearchResponseSchema>;
+
+/** Zod schema for a single YouTube video item from videos.list */
+const youTubeVideoItemSchema = z.object({
+  id: z.string(),
+  snippet: z.object({
+    title: z.string(),
+    channelTitle: z.string(),
+    thumbnails: z.object({
+      medium: z.object({ url: z.string() }).optional(),
+      default: z.object({ url: z.string() }),
+    }),
+  }),
+  contentDetails: z.object({ duration: z.string() }),
+  status: z.object({
+    madeForKids: z.boolean().optional(),
+    selfDeclaredMadeForKids: z.boolean().optional(),
+  }),
+});
+
+/** Zod schema for YouTube Data API v3 videos.list response */
+const youTubeVideoDetailsResponseSchema = z.object({
+  items: z.array(youTubeVideoItemSchema),
+});
+
+type YouTubeVideoDetailsResponse = z.infer<
+  typeof youTubeVideoDetailsResponseSchema
+>;
+
+export class YouTubeService {
+  private session: Session;
+
+  constructor(session: Session) {
+    this.session = session;
+  }
+
+  private async fetchYouTubeApi<T>(
+    url: string,
+    label: string,
+    schema: ZodType<T>,
+  ): Promise<T> {
     const apiKey = env.YOUTUBE_API_KEY;
     if (!apiKey) {
       throw new TRPCError({
@@ -105,133 +146,85 @@ export class YouTubeService {
       });
     }
 
-    const searchQuery = `${input.artistName} ${input.trackName} autogenerated`;
-    const cacheKey = `youtube:search:${searchQuery}:${input.durationMs}`;
-
+    let response: Response;
     try {
-      const cachedResult = await redis.get(cacheKey);
+      response = await fetch(`${url}&key=${apiKey}`);
+    } catch (networkError) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `YouTube ${label} API network error: ${networkError instanceof Error ? networkError.message : String(networkError)}`,
+        cause: networkError,
+      });
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`YouTube ${label} API error:`, {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+      });
+
+      if (response.status === 403) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "YouTube API access denied. Please check your API key and ensure YouTube Data API v3 is enabled.",
+        });
+      }
+
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `YouTube ${label} API error: ${response.status} - ${errorText}`,
+      });
+    }
+
+    const json: unknown = await response.json();
+    const parsed = schema.safeParse(json);
+    if (!parsed.success) {
+      console.error(
+        `YouTube ${label} API response validation failed:`,
+        parsed.error.issues,
+      );
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `YouTube ${label} API returned unexpected response shape`,
+      });
+    }
+    return parsed.data;
+  }
+
+  private async cachedFetch<T>(
+    cacheKey: string,
+    fetcher: () => Promise<T>,
+    schema?: ZodType<T>,
+  ): Promise<T> {
+    try {
+      const cachedResult = await getRedisConnection().get(cacheKey);
       if (cachedResult) {
-        console.log("YouTube search cache hit for:", searchQuery);
-        return JSON.parse(cachedResult) as { matches: YouTubeSearchResult[] };
+        const parsed: unknown = JSON.parse(cachedResult);
+        if (schema) {
+          const validated = schema.safeParse(parsed);
+          if (validated.success) {
+            return validated.data;
+          }
+          console.warn("Cached data failed validation, refetching:", cacheKey);
+        } else {
+          return parsed as T;
+        }
       }
     } catch (error) {
       console.warn("Redis cache read error:", error);
     }
 
-    console.log("YouTube search cache miss for:", searchQuery);
+    const result = await fetcher();
 
-    const searchResponse = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=5&key=${apiKey}`,
-    );
-
-    if (!searchResponse.ok) {
-      const errorText = await searchResponse.text();
-      console.error("YouTube Search API error:", {
-        status: searchResponse.status,
-        statusText: searchResponse.statusText,
-        body: errorText,
-      });
-
-      if (searchResponse.status === 403) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message:
-            "YouTube API access denied. Please check your API key and ensure YouTube Data API v3 is enabled.",
-        });
-      }
-
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: `YouTube Search API error: ${searchResponse.status} - ${errorText}`,
-      });
-    }
-
-    const searchData = (await searchResponse.json()) as {
-      items: Array<{
-        id: { videoId: string };
-        snippet: {
-          title: string;
-          channelTitle: string;
-          thumbnails: { default: { url: string } };
-        };
-        contentDetails?: { duration: string };
-      }>;
-    };
-
-    if (!searchData.items || searchData.items.length === 0) {
-      return { matches: [] };
-    }
-
-    const videoIds = searchData.items.map((item) => item.id.videoId).join(",");
-    const detailsResponse = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status&id=${videoIds}&key=${apiKey}`,
-    );
-
-    if (!detailsResponse.ok) {
-      const errorText = await detailsResponse.text();
-      console.error("YouTube Videos API error:", {
-        status: detailsResponse.status,
-        statusText: detailsResponse.statusText,
-        body: errorText,
-      });
-
-      if (detailsResponse.status === 403) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message:
-            "YouTube API access denied. Please check your API key and ensure YouTube Data API v3 is enabled.",
-        });
-      }
-
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: `YouTube Videos API error: ${detailsResponse.status} - ${errorText}`,
-      });
-    }
-
-    const detailsData = (await detailsResponse.json()) as {
-      items: Array<{
-        id: string;
-        contentDetails: { duration: string };
-        status: { madeForKids?: boolean; selfDeclaredMadeForKids?: boolean };
-      }>;
-    };
-
-    const matches: YouTubeSearchResult[] = searchData.items
-      .map((item, index) => {
-        const details = detailsData.items?.[index];
-        const youtubeDurationSec = details
-          ? this.parseYouTubeDuration(details.contentDetails.duration)
-          : 0;
-        const confidence = this.calculateDurationConfidence(
-          input.durationMs,
-          youtubeDurationSec,
-        );
-        const explicit = this.isYouTubeContentExplicit(
-          item.snippet.title,
-          item.snippet.channelTitle,
-          details?.status.madeForKids,
-          details?.status.selfDeclaredMadeForKids,
-        );
-
-        return {
-          videoId: item.id.videoId,
-          title: item.snippet.title,
-          channel: item.snippet.channelTitle,
-          duration: details?.contentDetails.duration ?? "PT0S",
-          thumbnail: item.snippet.thumbnails.default.url,
-          confidence,
-          explicit,
-        };
-      })
-      .sort((a, b) => b.confidence - a.confidence)
-      .slice(0, 5);
-
-    const result = { matches };
-
-    // Cache for 30 minutes
     try {
-      await redis.setex(cacheKey, 1800, JSON.stringify(result));
+      await getRedisConnection().setex(
+        cacheKey,
+        CACHE_TTL_SECONDS,
+        JSON.stringify(result),
+      );
     } catch (error) {
       console.warn("Redis cache write error:", error);
     }
@@ -239,18 +232,81 @@ export class YouTubeService {
     return result;
   }
 
+  async search(
+    input: YouTubeSearchInput,
+  ): Promise<{ matches: YouTubeSearchResult[] }> {
+    const searchQuery = `${input.artistName} ${input.trackName} autogenerated`;
+    const cacheKey = `youtube:search:${searchQuery}:${input.durationMs}`;
+
+    return this.cachedFetch(cacheKey, async () => {
+      const searchData = await this.fetchYouTubeApi(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=5`,
+        "Search",
+        youTubeSearchResponseSchema,
+      );
+
+      if (!searchData.items || searchData.items.length === 0) {
+        return { matches: [] };
+      }
+
+      const videoIds = searchData.items
+        .map((item) => item.id.videoId)
+        .join(",");
+      const detailsData = await this.fetchYouTubeApi(
+        `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status&id=${videoIds}`,
+        "Videos",
+        youTubeVideoDetailsResponseSchema,
+      );
+
+      const detailsById = new Map(
+        detailsData.items.map((item) => [item.id, item]),
+      );
+
+      const matches: YouTubeSearchResult[] = searchData.items
+        .map((item) => {
+          const details = detailsById.get(item.id.videoId);
+          const youtubeDurationSec = details
+            ? parseIsoDuration(details.contentDetails.duration)
+            : 0;
+          const confidence = calculateDurationConfidence(
+            input.durationMs,
+            youtubeDurationSec,
+          );
+          const explicit = isYouTubeContentExplicit({
+            title: item.snippet.title,
+            channel: item.snippet.channelTitle,
+            madeForKids: details?.status.madeForKids,
+            selfDeclaredMadeForKids: details?.status.selfDeclaredMadeForKids,
+          });
+          const clean = isYouTubeContentClean({
+            title: item.snippet.title,
+            channel: item.snippet.channelTitle,
+            madeForKids: details?.status.madeForKids,
+            selfDeclaredMadeForKids: details?.status.selfDeclaredMadeForKids,
+          });
+
+          return {
+            videoId: item.id.videoId,
+            title: item.snippet.title,
+            channel: item.snippet.channelTitle,
+            duration: details?.contentDetails.duration ?? "PT0S",
+            thumbnail: item.snippet.thumbnails.default.url,
+            confidence,
+            explicit,
+            clean,
+          };
+        })
+        .sort((a, b) => b.confidence - a.confidence)
+        .slice(0, 5);
+
+      return { matches };
+    });
+  }
+
   async searchByQuery(
     query: string,
     maxResults = 8,
   ): Promise<{ matches: YouTubeSearchResult[] }> {
-    const apiKey = env.YOUTUBE_API_KEY;
-    if (!apiKey) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "YouTube API key is not configured",
-      });
-    }
-
     const trimmedQuery = query.trim();
     if (!trimmedQuery) {
       return { matches: [] };
@@ -258,385 +314,108 @@ export class YouTubeService {
 
     const cacheKey = `youtube:query:${trimmedQuery}:${maxResults}`;
 
-    try {
-      const cachedResult = await redis.get(cacheKey);
-      if (cachedResult) {
-        console.log("YouTube query cache hit for:", trimmedQuery);
-        return JSON.parse(cachedResult) as { matches: YouTubeSearchResult[] };
-      }
-    } catch (error) {
-      console.warn("Redis cache read error:", error);
-    }
-
-    console.log("YouTube query cache miss for:", trimmedQuery);
-
-    const searchResponse = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(trimmedQuery)}&type=video&maxResults=${maxResults}&key=${apiKey}`,
-    );
-
-    if (!searchResponse.ok) {
-      const errorText = await searchResponse.text();
-      console.error("YouTube Search API error:", {
-        status: searchResponse.status,
-        statusText: searchResponse.statusText,
-        body: errorText,
-      });
-
-      if (searchResponse.status === 403) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message:
-            "YouTube API access denied. Please check your API key and ensure YouTube Data API v3 is enabled.",
-        });
-      }
-
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: `YouTube Search API error: ${searchResponse.status} - ${errorText}`,
-      });
-    }
-
-    const searchData = (await searchResponse.json()) as {
-      items: Array<{
-        id: { videoId: string };
-        snippet: {
-          title: string;
-          channelTitle: string;
-          thumbnails: {
-            medium?: { url: string };
-            default: { url: string };
-          };
-        };
-      }>;
-    };
-
-    if (!searchData.items || searchData.items.length === 0) {
-      return { matches: [] };
-    }
-
-    const videoIds = searchData.items.map((item) => item.id.videoId);
-    const detailsResponse = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status&id=${videoIds.join(",")}&key=${apiKey}`,
-    );
-
-    if (!detailsResponse.ok) {
-      const errorText = await detailsResponse.text();
-      console.error("YouTube Videos API error:", {
-        status: detailsResponse.status,
-        statusText: detailsResponse.statusText,
-        body: errorText,
-      });
-
-      if (detailsResponse.status === 403) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message:
-            "YouTube API access denied. Please check your API key and ensure YouTube Data API v3 is enabled.",
-        });
-      }
-
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: `YouTube Videos API error: ${detailsResponse.status} - ${errorText}`,
-      });
-    }
-
-    const detailsData = (await detailsResponse.json()) as {
-      items: Array<{
-        id: string;
-        contentDetails: { duration: string };
-        status: { madeForKids?: boolean; selfDeclaredMadeForKids?: boolean };
-      }>;
-    };
-
-    const detailsById = new Map(
-      detailsData.items.map((item) => [item.id, item]),
-    );
-
-    const matches: YouTubeSearchResult[] = searchData.items.map((item) => {
-      const details = detailsById.get(item.id.videoId);
-      const explicit = this.isYouTubeContentExplicit(
-        item.snippet.title,
-        item.snippet.channelTitle,
-        details?.status.madeForKids,
-        details?.status.selfDeclaredMadeForKids,
+    return this.cachedFetch(cacheKey, async () => {
+      const searchData = await this.fetchYouTubeApi(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(trimmedQuery)}&type=video&maxResults=${maxResults}`,
+        "Search",
+        youTubeSearchResponseSchema,
       );
 
-      return {
-        videoId: item.id.videoId,
-        title: item.snippet.title,
-        channel: item.snippet.channelTitle,
-        duration: details?.contentDetails.duration ?? "PT0S",
-        thumbnail:
-          item.snippet.thumbnails.medium?.url ??
-          item.snippet.thumbnails.default.url,
-        confidence: 80,
-        explicit,
-      };
+      if (!searchData.items || searchData.items.length === 0) {
+        return { matches: [] };
+      }
+
+      const videoIds = searchData.items.map((item) => item.id.videoId);
+      const detailsData = await this.fetchYouTubeApi(
+        `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status&id=${videoIds.join(",")}`,
+        "Videos",
+        youTubeVideoDetailsResponseSchema,
+      );
+
+      const detailsById = new Map(
+        detailsData.items.map((item) => [item.id, item]),
+      );
+
+      const matches: YouTubeSearchResult[] = searchData.items.map((item) => {
+        const details = detailsById.get(item.id.videoId);
+        const meta: VideoMetadata = {
+          title: item.snippet.title,
+          channel: item.snippet.channelTitle,
+          madeForKids: details?.status.madeForKids,
+          selfDeclaredMadeForKids: details?.status.selfDeclaredMadeForKids,
+        };
+        const explicit = isYouTubeContentExplicit(meta);
+        const clean = isYouTubeContentClean(meta);
+
+        return {
+          videoId: item.id.videoId,
+          title: item.snippet.title,
+          channel: item.snippet.channelTitle,
+          duration: details?.contentDetails.duration ?? "PT0S",
+          thumbnail:
+            item.snippet.thumbnails.medium?.url ??
+            item.snippet.thumbnails.default.url,
+          confidence: 80,
+          explicit,
+          clean,
+        };
+      });
+
+      return { matches };
     });
-
-    const result = { matches };
-
-    try {
-      await redis.setex(cacheKey, 1800, JSON.stringify(result));
-    } catch (error) {
-      console.warn("Redis cache write error:", error);
-    }
-
-    return result;
   }
 
-  async resolveVideoById(videoId: string): Promise<YouTubeSearchResult | null> {
-    const apiKey = env.YOUTUBE_API_KEY;
-    if (!apiKey) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "YouTube API key is not configured",
-      });
-    }
-
+  /**
+   * Resolves a YouTube video by its ID, returning full video details.
+   *
+   * @returns The video details wrapped in `{ match }`, or `{ match: null }` if not found.
+   * @throws {TRPCError} If the YouTube API request fails (network error, auth error, etc.).
+   */
+  async resolveVideoById(
+    videoId: string,
+  ): Promise<{ match: YouTubeSearchResult | null }> {
     const trimmedId = videoId.trim();
     if (!trimmedId) {
-      return null;
+      return { match: null };
     }
 
     const cacheKey = `youtube:video:${trimmedId}`;
 
-    try {
-      const cachedResult = await redis.get(cacheKey);
-      if (cachedResult) {
-        console.log("YouTube video cache hit for:", trimmedId);
-        return JSON.parse(cachedResult) as YouTubeSearchResult;
-      }
-    } catch (error) {
-      console.warn("Redis cache read error:", error);
-    }
+    return this.cachedFetch(cacheKey, async () => {
+      const detailsData = await this.fetchYouTubeApi(
+        `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,status&id=${encodeURIComponent(trimmedId)}`,
+        "Videos",
+        youTubeVideoDetailsResponseSchema,
+      );
 
-    const detailsResponse = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,status&id=${encodeURIComponent(trimmedId)}&key=${apiKey}`,
-    );
-
-    if (!detailsResponse.ok) {
-      const errorText = await detailsResponse.text();
-      console.error("YouTube Videos API error:", {
-        status: detailsResponse.status,
-        statusText: detailsResponse.statusText,
-        body: errorText,
-      });
-
-      if (detailsResponse.status === 403) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message:
-            "YouTube API access denied. Please check your API key and ensure YouTube Data API v3 is enabled.",
-        });
+      const item = detailsData.items?.[0];
+      if (!item) {
+        return { match: null };
       }
 
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: `YouTube Videos API error: ${detailsResponse.status} - ${errorText}`,
-      });
-    }
-
-    const detailsData = (await detailsResponse.json()) as {
-      items: Array<{
-        id: string;
-        snippet: {
-          title: string;
-          channelTitle: string;
-          thumbnails: {
-            medium?: { url: string };
-            default: { url: string };
-          };
-        };
-        contentDetails: { duration: string };
-        status: { madeForKids?: boolean; selfDeclaredMadeForKids?: boolean };
-      }>;
-    };
-
-    const item = detailsData.items?.[0];
-    if (!item) {
-      return null;
-    }
-
-    const explicit = this.isYouTubeContentExplicit(
-      item.snippet.title,
-      item.snippet.channelTitle,
-      item.status.madeForKids,
-      item.status.selfDeclaredMadeForKids,
-    );
-
-    const result: YouTubeSearchResult = {
-      videoId: item.id,
-      title: item.snippet.title,
-      channel: item.snippet.channelTitle,
-      duration: item.contentDetails.duration ?? "PT0S",
-      thumbnail:
-        item.snippet.thumbnails.medium?.url ??
-        item.snippet.thumbnails.default.url,
-      confidence: 100,
-      explicit,
-    };
-
-    try {
-      await redis.setex(cacheKey, 1800, JSON.stringify(result));
-    } catch (error) {
-      console.warn("Redis cache write error:", error);
-    }
-
-    return result;
-  }
-
-  async downloadTracks(
-    tracks: Array<{
-      videoId: string;
-      trackName: string;
-      artistName: string;
-      allArtists?: string[];
-      artwork?: string;
-      useArtistInFilename?: boolean;
-    }>,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    jobs: Array<{
-      jobId: string;
-      videoId: string;
-      trackName: string;
-      artistName: string;
-      allArtists?: string[];
-    }>;
-  }> {
-    const userId = this.session!.user.id;
-    const jobs = [];
-
-    console.log(
-      `🎵 downloadTracks called for user ${userId} with ${tracks.length} tracks`,
-    );
-
-    if (tracks.length === 0) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "No tracks provided for download",
-      });
-    }
-
-    if (tracks.length > 50) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Cannot download more than 50 tracks at once",
-      });
-    }
-
-    for (const track of tracks) {
-      const jobData: DownloadJobData = {
-        videoId: track.videoId,
-        trackName: track.trackName,
-        artistName: track.artistName,
-        allArtists: track.allArtists,
-        artwork: track.artwork,
-        useArtistInFilename: track.useArtistInFilename,
-        userId,
-        jobId: `${userId}-${track.videoId}-${Date.now()}`,
+      const videoMeta: VideoMetadata = {
+        title: item.snippet.title,
+        channel: item.snippet.channelTitle,
+        madeForKids: item.status.madeForKids,
+        selfDeclaredMadeForKids: item.status.selfDeclaredMadeForKids,
       };
+      const explicit = isYouTubeContentExplicit(videoMeta);
+      const clean = isYouTubeContentClean(videoMeta);
 
-      console.log(
-        `📥 Adding job for: ${track.artistName} - ${track.trackName}`,
-      );
-      if (track.allArtists && track.allArtists.length > 1) {
-        console.log(`   All artists: ${track.allArtists.join(", ")}`);
-      }
-
-      const job = await downloadQueue.add(
-        `download-${track.videoId}`,
-        jobData,
-        {
-          priority: 0,
-          delay: 0,
+      return {
+        match: {
+          videoId: item.id,
+          title: item.snippet.title,
+          channel: item.snippet.channelTitle,
+          duration: item.contentDetails.duration ?? "PT0S",
+          thumbnail:
+            item.snippet.thumbnails.medium?.url ??
+            item.snippet.thumbnails.default.url,
+          confidence: 100,
+          explicit,
+          clean,
         },
-      );
-
-      jobs.push({
-        jobId: job.id!,
-        videoId: track.videoId,
-        trackName: track.trackName,
-        artistName: track.artistName,
-        allArtists: track.allArtists,
-      });
-    }
-
-    console.log(`✅ Added ${jobs.length} tracks to download queue`);
-
-    return {
-      success: true,
-      message: `Added ${jobs.length} tracks to download queue`,
-      jobs,
-    };
-  }
-
-  static async getDownloadStatus(jobIds: string[]): Promise<
-    Array<{
-      jobId: string;
-      status: string;
-      progress: number;
-      result?: DownloadResult;
-      failedReason?: string;
-      error?: string;
-    }>
-  > {
-    const jobs = await Promise.all(
-      jobIds.map(async (jobId) => {
-        try {
-          const job = await downloadQueue.getJob(jobId);
-          if (!job) {
-            return {
-              jobId,
-              status: "not_found",
-              progress: 0,
-            };
-          }
-
-          const state = await job.getState();
-          const progress = job.progress as number;
-
-          return {
-            jobId,
-            status: state,
-            progress,
-            result: job.returnvalue as DownloadResult | undefined,
-            failedReason: job.failedReason,
-          };
-        } catch (error) {
-          return {
-            jobId,
-            status: "error",
-            progress: 0,
-            error: error instanceof Error ? error.message : "Unknown error",
-          };
-        }
-      }),
-    );
-
-    return jobs;
-  }
-
-  static async cleanupDownloads(downloadIds: string[]): Promise<{
-    success: boolean;
-    message: string;
-    cleanedCount: number;
-  }> {
-    let cleanedCount = 0;
-
-    for (const downloadId of downloadIds) {
-      if (await removeDownloadedFile(downloadId)) {
-        cleanedCount++;
-      }
-    }
-
-    return {
-      success: true,
-      message: `Cleaned up ${cleanedCount} files`,
-      cleanedCount,
-    };
+      };
+    });
   }
 }

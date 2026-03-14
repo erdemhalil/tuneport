@@ -2,10 +2,10 @@ import { useState } from "react";
 
 import { YouTubeSearch } from "./YouTubeSearch";
 import { TrackItem } from "./TrackItem";
-import { api } from "~/utils/api";
-import { useDownloads } from "~/contexts/DownloadContext";
+import { useDownloadMutation } from "~/hooks/useDownloadMutation";
 import type { Collection, Track } from "~/utils/types";
 import { Pagination } from "~/components/ui/Pagination";
+import { DownloadActionBar } from "~/components/ui/DownloadActionBar";
 
 interface TrackMatcherProps {
   collection: Collection;
@@ -34,41 +34,15 @@ export function TrackMatcher({
     {},
   );
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
-  const { addJobs } = useDownloads();
 
-  const downloadMutation = api.youtube.downloadTracks.useMutation({
-    onSuccess: (data) => {
-      console.log("🎉 Download mutation success:", data);
-
-      const validJobs = data.jobs
-        .filter((job) => job.jobId)
-        .map((job) => {
-          const track = tracks.find(
-            (t) =>
-              t.name === job.trackName && t.artists.includes(job.artistName),
-          );
-          return {
-            jobId: job.jobId,
-            videoId: job.videoId,
-            trackName: job.trackName,
-            artistName: job.artistName,
-            allArtists: job.allArtists ?? track?.artists ?? [job.artistName],
-            artwork: track?.album.image ?? undefined,
-          };
-        });
-      console.log(
-        "Valid jobs with allArtists:",
-        validJobs.map((j) => ({
-          trackName: j.trackName,
-          allArtists: j.allArtists,
-        })),
-      );
-      addJobs(validJobs);
-    },
-    onError: (error) => {
-      console.error("❌ Download mutation error:", error);
-      alert(`Download failed: ${error.message}`);
-    },
+  const downloadMutation = useDownloadMutation((job) => {
+    const track = tracks.find(
+      (t) => t.name === job.trackName && t.artists.includes(job.artistName),
+    );
+    return {
+      allArtists: track?.artists ?? [job.artistName],
+      artwork: track?.album.image ?? undefined,
+    };
   });
 
   const handleTrackSelect = (trackId: string) => {
@@ -94,7 +68,6 @@ export function TrackMatcher({
   };
 
   const handleDownload = () => {
-    console.log("🎵 handleDownload called");
     const tracksToDownload = Object.entries(selectedTracks)
       .map(([trackId, videoId]) => {
         const track = tracks.find((t) => t.id === trackId);
@@ -110,8 +83,6 @@ export function TrackMatcher({
       })
       .filter((track): track is NonNullable<typeof track> => track !== null);
 
-    console.log("📋 Tracks to download:", tracksToDownload);
-
     if (tracksToDownload.length === 0) {
       alert("No tracks selected for download");
       return;
@@ -122,7 +93,6 @@ export function TrackMatcher({
       return;
     }
 
-    console.log("🚀 Calling download mutation...");
     downloadMutation.mutate({ tracks: tracksToDownload });
   };
 
@@ -297,70 +267,12 @@ export function TrackMatcher({
       </div>
 
       {/* Action Bar */}
-      {Object.keys(selectedTracks).length > 0 && (
-        <div className="glass animate-slide-in rounded-2xl border border-white/20 p-6 shadow-2xl backdrop-blur-xl">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <div className="text-lg font-medium text-white">
-                {Object.keys(selectedTracks).length} track
-                {Object.keys(selectedTracks).length === 1 ? "" : "s"} ready
-              </div>
-              <div className="text-sm text-gray-400">
-                Matched and ready for download
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setSelectedTracks({})}
-                className="rounded-xl border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-gray-300 backdrop-blur-sm transition-all duration-200 hover:border-white/30 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
-              >
-                Clear All
-              </button>
-              <button
-                onClick={handleDownload}
-                disabled={downloadMutation.isPending}
-                className="flex items-center space-x-2 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:from-purple-600 hover:to-blue-600 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {downloadMutation.isPending ? (
-                  <>
-                    <svg
-                      className="h-4 w-4 animate-spin"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                    <span>Starting Download...</span>
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
-                    </svg>
-                    <span>Download Selected</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DownloadActionBar
+        selectedCount={Object.keys(selectedTracks).length}
+        isPending={downloadMutation.isPending}
+        onClear={() => setSelectedTracks({})}
+        onDownload={handleDownload}
+      />
     </div>
   );
 }

@@ -1,84 +1,85 @@
 import { TRPCError } from "@trpc/server";
-import { env } from "~/env";
+import { z } from "zod";
 import type { Session } from "next-auth";
+import type { Collection, Track } from "~/utils/types";
 
-export interface SpotifyTrack {
-  id: string;
-  name: string;
-  artists: Array<{ name: string }>;
-  album: {
-    name: string;
-    images: Array<{ url: string }>;
-  };
-  duration_ms: number;
-  explicit: boolean;
-  external_urls: {
-    spotify: string;
-  };
-}
+export const spotifyTrackSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  artists: z.array(z.object({ name: z.string() })),
+  album: z.object({
+    name: z.string(),
+    images: z.array(z.object({ url: z.string() })),
+  }),
+  duration_ms: z.number(),
+  explicit: z.boolean(),
+  external_urls: z.object({
+    spotify: z.string(),
+  }),
+});
 
-export interface SpotifyPlaylist {
-  id: string;
-  name: string;
-  description: string | null;
-  images: Array<{ url: string }>;
-  tracks: {
-    total: number;
-  };
-  owner: {
-    display_name: string;
-  };
-}
+export type SpotifyTrack = z.infer<typeof spotifyTrackSchema>;
 
-export interface LikedSongsResponse {
-  items: Array<{
-    track: SpotifyTrack;
-    added_at: string;
-  }>;
-  total: number;
-  limit: number;
-  offset: number;
-}
+const spotifyPlaylistSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  images: z.array(z.object({ url: z.string() })),
+  tracks: z.object({ total: z.number() }),
+  owner: z.object({ display_name: z.string() }),
+});
 
-export interface PlaylistsResponse {
-  items: SpotifyPlaylist[];
-  total: number;
-  limit: number;
-  offset: number;
-}
+export type SpotifyPlaylist = z.infer<typeof spotifyPlaylistSchema>;
 
-export interface PlaylistTracksResponse {
-  items: Array<{
-    track: SpotifyTrack;
-    added_at: string;
-  }>;
-  total: number;
-  limit: number;
-  offset: number;
-}
+const likedSongsResponseSchema = z.object({
+  items: z.array(
+    z.object({
+      track: spotifyTrackSchema,
+      added_at: z.string(),
+    }),
+  ),
+  total: z.number(),
+  limit: z.number(),
+  offset: z.number(),
+});
 
-export interface SpotifyCollection {
-  id: string;
-  name: string;
-  description: string | null;
-  image: string | null;
-  track_count: number;
-  owner: string;
-  type: "liked_songs" | "playlist";
-}
+const playlistsResponseSchema = z.object({
+  items: z.array(spotifyPlaylistSchema),
+  total: z.number(),
+  limit: z.number(),
+  offset: z.number(),
+});
 
-export interface SpotifyTrackData {
-  id: string;
-  name: string;
-  artists: string[];
-  album: {
-    name: string;
-    image: string | null;
-  };
-  duration_ms: number;
-  explicit: boolean;
+const playlistTracksResponseSchema = z.object({
+  items: z.array(
+    z.object({
+      track: spotifyTrackSchema,
+      added_at: z.string(),
+    }),
+  ),
+  total: z.number(),
+  limit: z.number(),
+  offset: z.number(),
+});
+
+export function mapSpotifyTrack(item: {
+  track: SpotifyTrack;
   added_at?: string;
-  spotify_url: string;
+}): Track {
+  const track = item.track;
+  return {
+    id: track.id,
+    name: track.name,
+    artists: track.artists.map((artist) => artist.name),
+    album: {
+      name: track.album.name,
+      image: track.album.images[0]?.url ?? null,
+    },
+    duration_ms: track.duration_ms,
+    explicit: track.explicit,
+    added_at: item.added_at,
+    spotify_url: track.external_urls.spotify,
+  };
 }
 
 export class SpotifyService {
@@ -88,116 +89,84 @@ export class SpotifyService {
     this.session = session;
   }
 
-  private async refreshToken(
-    refreshToken: string,
-  ): Promise<{ access_token: string; expires_in: number } | null> {
+  private async fetchSpotifyApi(url: string): Promise<Response> {
+    if (!this.session.accessToken) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Authentication failed - please re-authenticate",
+      });
+    }
+
+    let response: Response;
     try {
-      const response = await fetch("https://accounts.spotify.com/api/token", {
-        method: "POST",
+      response = await fetch(url, {
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          grant_type: "refresh_token",
-          refresh_token: refreshToken,
-          client_id: env.SPOTIFY_CLIENT_ID,
-          client_secret: env.SPOTIFY_CLIENT_SECRET,
-        }),
-      });
-
-      if (response.ok) {
-        const data = (await response.json()) as {
-          access_token: string;
-          expires_in: number;
-        };
-        return data;
-      }
-      return null;
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-      return null;
-    }
-  }
-
-  private async makeRequest(url: string): Promise<Response> {
-    const session = this.session as Session & {
-      accessToken?: string;
-      refreshToken?: string;
-    };
-
-    if (session.accessToken) {
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
+          Authorization: `Bearer ${this.session.accessToken}`,
         },
       });
-
-      if (response.status !== 401) {
-        return response;
-      }
+    } catch (networkError) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Spotify API network error: ${networkError instanceof Error ? networkError.message : String(networkError)}`,
+        cause: networkError,
+      });
     }
 
-    if (session.refreshToken) {
-      console.log("Access token expired, attempting refresh...");
-      const refreshResult = await this.refreshToken(session.refreshToken);
-      if (refreshResult) {
-        console.log("Token refresh successful, retrying request...");
-        return await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${refreshResult.access_token}`,
-          },
-        });
-      }
+    if (response.status === 401) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Authentication failed - please re-authenticate",
+      });
     }
 
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "Authentication failed - please re-authenticate",
-    });
+    if (!response.ok) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Spotify API error: ${response.status} ${response.statusText}`,
+      });
+    }
+
+    return response;
   }
 
-  private mapSpotifyTrack = (item: {
-    track: SpotifyTrack;
-    added_at?: string;
-  }): SpotifyTrackData => {
-    const track = item.track;
-    return {
-      id: track.id,
-      name: track.name,
-      artists: track.artists.map((artist) => artist.name),
-      album: {
-        name: track.album.name,
-        image: track.album.images[0]?.url ?? null,
-      },
-      duration_ms: track.duration_ms,
-      explicit: track.explicit,
-      added_at: item.added_at,
-      spotify_url: track.external_urls.spotify,
-    };
-  };
+  private parseApiResponse<T>(
+    json: unknown,
+    schema: z.ZodType<T>,
+    label: string,
+  ): T {
+    const parsed = schema.safeParse(json);
+    if (!parsed.success) {
+      console.error(
+        `Spotify ${label} API response validation failed:`,
+        parsed.error.issues,
+      );
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Spotify ${label} API returned unexpected response shape`,
+      });
+    }
+    return parsed.data;
+  }
 
   async getLikedSongs(
     limit = 50,
     offset = 0,
   ): Promise<{
-    tracks: SpotifyTrackData[];
+    tracks: Track[];
     total: number;
     limit: number;
     offset: number;
   }> {
     const url = `https://api.spotify.com/v1/me/tracks?limit=${limit}&offset=${offset}`;
-    const response = await this.makeRequest(url);
-
-    if (!response.ok) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: `Spotify API error: ${response.status}`,
-      });
-    }
-
-    const data = (await response.json()) as LikedSongsResponse;
+    const response = await this.fetchSpotifyApi(url);
+    const json: unknown = await response.json();
+    const data = this.parseApiResponse(
+      json,
+      likedSongsResponseSchema,
+      "Liked Songs",
+    );
     return {
-      tracks: data.items.map(this.mapSpotifyTrack),
+      tracks: data.items.map(mapSpotifyTrack),
       total: data.total,
       limit: data.limit,
       offset: data.offset,
@@ -214,16 +183,13 @@ export class SpotifyService {
     offset: number;
   }> {
     const url = `https://api.spotify.com/v1/me/playlists?limit=${limit}&offset=${offset}`;
-    const response = await this.makeRequest(url);
-
-    if (!response.ok) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: `Spotify API error: ${response.status}`,
-      });
-    }
-
-    const data = (await response.json()) as PlaylistsResponse;
+    const response = await this.fetchSpotifyApi(url);
+    const json: unknown = await response.json();
+    const data = this.parseApiResponse(
+      json,
+      playlistsResponseSchema,
+      "Playlists",
+    );
     return {
       playlists: data.items.map((playlist) => ({
         id: playlist.id,
@@ -244,24 +210,21 @@ export class SpotifyService {
     limit = 50,
     offset = 0,
   ): Promise<{
-    tracks: SpotifyTrackData[];
+    tracks: Track[];
     total: number;
     limit: number;
     offset: number;
   }> {
     const url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=${limit}&offset=${offset}`;
-    const response = await this.makeRequest(url);
-
-    if (!response.ok) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: `Spotify API error: ${response.status}`,
-      });
-    }
-
-    const data = (await response.json()) as PlaylistTracksResponse;
+    const response = await this.fetchSpotifyApi(url);
+    const json: unknown = await response.json();
+    const data = this.parseApiResponse(
+      json,
+      playlistTracksResponseSchema,
+      "Playlist Tracks",
+    );
     return {
-      tracks: data.items.map(this.mapSpotifyTrack),
+      tracks: data.items.map(mapSpotifyTrack),
       total: data.total,
       limit: data.limit,
       offset: data.offset,
@@ -272,26 +235,24 @@ export class SpotifyService {
     limit = 20,
     offset = 0,
   ): Promise<{
-    collections: SpotifyCollection[];
+    collections: Collection[];
     total: number;
     limit: number;
     offset: number;
   }> {
-    const likedSongsResponse = await this.makeRequest(
+    const likedSongsResponse = await this.fetchSpotifyApi(
       "https://api.spotify.com/v1/me/tracks?limit=1&offset=0",
     );
-    if (!likedSongsResponse.ok) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: `Spotify API error: ${likedSongsResponse.status}`,
-      });
-    }
-    const likedSongsData =
-      (await likedSongsResponse.json()) as LikedSongsResponse;
+    const likedSongsJson: unknown = await likedSongsResponse.json();
+    const likedSongsData = this.parseApiResponse(
+      likedSongsJson,
+      likedSongsResponseSchema,
+      "Liked Songs",
+    );
 
     const playlistsData = await this.getPlaylists(limit, offset);
 
-    const collections: SpotifyCollection[] = [
+    const collections: Collection[] = [
       {
         id: "liked_songs",
         name: "Liked Songs",
@@ -314,7 +275,7 @@ export class SpotifyService {
 
     return {
       collections,
-      total: collections.length,
+      total: 1 + playlistsData.total, // 1 for Liked Songs + total playlists from API
       limit,
       offset,
     };
@@ -325,15 +286,14 @@ export class SpotifyService {
     limit = 50,
     offset = 0,
   ): Promise<{
-    tracks: SpotifyTrackData[];
+    tracks: Track[];
     total: number;
     limit: number;
     offset: number;
   }> {
     if (collectionId === "liked_songs") {
       return this.getLikedSongs(limit, offset);
-    } else {
-      return this.getPlaylistTracks(collectionId, limit, offset);
     }
+    return this.getPlaylistTracks(collectionId, limit, offset);
   }
 }

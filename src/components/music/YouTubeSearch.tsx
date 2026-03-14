@@ -1,17 +1,9 @@
 import { api } from "~/utils/api";
 import { MatchItem } from "./MatchItem";
+import type { Track } from "~/utils/types";
 
 interface YouTubeSearchProps {
-  track: {
-    id: string;
-    name: string;
-    artists: string[];
-    album: {
-      name: string;
-      image: string | null;
-    };
-    duration_ms: number;
-  };
+  track: Pick<Track, "id" | "name" | "artists" | "album" | "duration_ms">;
   selectedVideoId?: string;
   onSelect: (videoId: string) => void;
 }
@@ -33,21 +25,7 @@ export function YouTubeSearch({
     },
   );
 
-  type Match = {
-    videoId: string;
-    title: string;
-    channel: string;
-    duration: string;
-    thumbnail: string;
-    confidence: number;
-    explicit: boolean;
-  };
-
-  const matches: Match[] = (() => {
-    if (!searchResults) return [];
-    const data = searchResults as { matches?: unknown };
-    return Array.isArray(data.matches) ? (data.matches as Match[]) : [];
-  })();
+  const matches = searchResults?.matches ?? [];
 
   const handlePreview = (videoId: string) => {
     window.open(`https://www.youtube.com/watch?v=${videoId}`, "_blank");

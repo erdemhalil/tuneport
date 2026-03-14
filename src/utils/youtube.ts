@@ -1,4 +1,4 @@
-export const YOUTUBE_HOSTS = new Set([
+const YOUTUBE_HOSTS = new Set([
   "youtube.com",
   "www.youtube.com",
   "m.youtube.com",

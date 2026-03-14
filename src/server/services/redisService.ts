@@ -1,16 +1,11 @@
-import IORedis from "ioredis";
-import { env } from "~/env";
+import { getRedisConnection } from "~/server/lib/redis";
+import { isOwnedByUser } from "~/utils/types";
 
-export const redisConnection = new IORedis({
-  host: env.REDIS_HOST ?? "localhost",
-  port: parseInt(env.REDIS_PORT ?? "6379"),
-  password: env.REDIS_PASSWORD,
-  maxRetriesPerRequest: null,
-});
+function getDownloadFileKey(downloadId: string): string {
+  return `download:file:${downloadId}`;
+}
 
-const DOWNLOAD_FILE_KEY = (downloadId: string) => `download:file:${downloadId}`;
-
-export interface RedisFileData {
+interface RedisFileData {
   buffer: string;
   filename: string;
   mimeType: string;
@@ -18,9 +13,27 @@ export interface RedisFileData {
   timestamp: number;
 }
 
-export async function getDownloadedFile(downloadId: string) {
+export interface DownloadFileResult {
+  buffer: Buffer;
+  filename: string;
+  mimeType: string;
+  size: number;
+  timestamp: number;
+}
+
+/**
+ * Retrieve a downloaded file from Redis.
+ * Returns null if the file is not found, expired, or on Redis error.
+ * @throws never — errors are logged and swallowed.
+ */
+export async function getDownloadedFile(
+  downloadId: string,
+  userId: string,
+): Promise<DownloadFileResult | null> {
+  if (!isOwnedByUser(downloadId, userId)) return null;
+
   try {
-    const data = await redisConnection.get(DOWNLOAD_FILE_KEY(downloadId));
+    const data = await getRedisConnection().get(getDownloadFileKey(downloadId));
     if (!data) return null;
 
     const fileData = JSON.parse(data) as RedisFileData;
@@ -39,30 +52,50 @@ export async function getDownloadedFile(downloadId: string) {
   }
 }
 
+/**
+ * Store a downloaded file in Redis with a 1-hour TTL.
+ * Returns true on success, false on error.
+ * @throws never — errors are logged and swallowed.
+ */
 export async function storeDownloadedFile(
   downloadId: string,
   buffer: Buffer,
   filename: string,
   mimeType = "audio/mpeg",
-) {
-  const fileData: RedisFileData = {
-    buffer: buffer.toString("base64"),
-    filename,
-    mimeType,
-    size: buffer.length,
-    timestamp: Date.now(),
-  };
+): Promise<boolean> {
+  try {
+    const fileData: RedisFileData = {
+      buffer: buffer.toString("base64"),
+      filename,
+      mimeType,
+      size: buffer.length,
+      timestamp: Date.now(),
+    };
 
-  await redisConnection.setex(
-    DOWNLOAD_FILE_KEY(downloadId),
-    3600, // 1 hour TTL
-    JSON.stringify(fileData),
-  );
+    await getRedisConnection().setex(
+      getDownloadFileKey(downloadId),
+      3600, // 1 hour TTL
+      JSON.stringify(fileData),
+    );
+    return true;
+  } catch (error) {
+    console.error("Error storing file in Redis:", error);
+    return false;
+  }
 }
 
-export async function removeDownloadedFile(downloadId: string) {
+/**
+ * Remove a downloaded file from Redis.
+ * Returns true if the file was deleted, false if not found or on error.
+ * @throws never — errors are logged and swallowed.
+ */
+export async function removeDownloadedFile(
+  downloadId: string,
+): Promise<boolean> {
   try {
-    const result = await redisConnection.del(DOWNLOAD_FILE_KEY(downloadId));
+    const result = await getRedisConnection().del(
+      getDownloadFileKey(downloadId),
+    );
     return result > 0;
   } catch (error) {
     console.error("Error removing file from Redis:", error);

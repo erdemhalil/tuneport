@@ -1,5 +1,7 @@
 import Image from "next/image";
+import { formatDurationMs } from "~/utils/duration";
 import type { Track } from "~/utils/types";
+import { CheckmarkBadge } from "~/components/ui/CheckmarkBadge";
 
 interface TrackItemProps {
   track: Track;
@@ -14,26 +16,16 @@ export function TrackItem({
   isCurrent = false,
   onClick,
 }: TrackItemProps) {
-  const formatDuration = (ms: number) => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
-
   const baseClasses =
     "group glass relative flex cursor-pointer items-center space-x-4 rounded-2xl p-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.02]";
-  const selectedClasses = isSelected
-    ? "bg-emerald-500/30 ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-900 shadow-lg shadow-emerald-500/20"
-    : "hover:bg-white/15 hover:ring-1 hover:ring-white/30";
-  const currentClasses = isCurrent
+  const stateClasses = isCurrent
     ? "bg-gradient-to-r from-purple-500/50 to-blue-500/50 ring-2 ring-purple-300 ring-offset-2 ring-offset-slate-900 shadow-xl shadow-purple-500/30 scale-[1.02] border border-purple-300/50"
-    : "";
+    : isSelected
+      ? "bg-emerald-500/30 ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-900 shadow-lg shadow-emerald-500/20"
+      : "hover:bg-white/15 hover:ring-1 hover:ring-white/30";
 
   return (
-    <div
-      className={`${baseClasses} ${selectedClasses} ${currentClasses}`}
-      onClick={onClick}
-    >
+    <div className={`${baseClasses} ${stateClasses}`} onClick={onClick}>
       <div className="relative flex-shrink-0">
         {track.album.image && (
           <Image
@@ -49,19 +41,11 @@ export function TrackItem({
           />
         )}
         {isSelected && (
-          <div className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 shadow-sm">
-            <svg
-              className="h-3 w-3 text-white"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
+          <CheckmarkBadge
+            color="emerald"
+            size="md"
+            className="absolute -top-1 -right-1 shadow-sm"
+          />
         )}
       </div>
 
@@ -104,7 +88,7 @@ export function TrackItem({
                 : "text-gray-500 group-hover:text-gray-400"
           }`}
         >
-          {formatDuration(track.duration_ms)}
+          {formatDurationMs(track.duration_ms)}
         </p>
       </div>
 

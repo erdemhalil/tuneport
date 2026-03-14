@@ -31,7 +31,7 @@ export const spotifyRouter = createTRPCRouter({
   playlistTracks: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        collectionId: z.string(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
       }),
@@ -39,7 +39,7 @@ export const spotifyRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const spotifyService = new SpotifyService(ctx.session);
       return spotifyService.getPlaylistTracks(
-        input.id,
+        input.collectionId,
         input.limit,
         input.offset,
       );

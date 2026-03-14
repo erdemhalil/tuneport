@@ -20,31 +20,21 @@ export default async function handler(
   try {
     const session = await getServerSession(req, res, authConfig);
     if (!session?.user?.id) {
-      console.log("❌ Authentication failed - no valid session");
       return res.status(401).json({ error: "Unauthorized" });
     }
-
-    console.log(`✅ Authenticated user: ${session.user.id}`);
 
     const { downloadId } = req.query;
 
     if (!downloadId || typeof downloadId !== "string") {
-      console.log("❌ Invalid downloadId parameter:", downloadId);
       return res.status(400).json({ error: "Missing downloadId parameter" });
     }
 
-    console.log(`🔍 Fetching download: ${downloadId}`);
-
-    const fileData = await getDownloadedFile(downloadId);
+    // Ownership is verified inside getDownloadedFile
+    const fileData = await getDownloadedFile(downloadId, session.user.id);
 
     if (!fileData) {
-      console.log(`File not found for downloadId: ${downloadId}`);
-      return res.status(404).json({ error: "File not found or expired" });
+      return res.status(404).json({ error: "File not found or access denied" });
     }
-
-    console.log(
-      `Serving download: ${fileData.filename} (${fileData.size} bytes)`,
-    );
 
     res.setHeader("Content-Type", fileData.mimeType);
     res.setHeader("Content-Length", fileData.size);
@@ -61,7 +51,12 @@ export default async function handler(
 
     res.send(fileData.buffer);
   } catch (error) {
-    console.error("Download API error:", error);
+    const context =
+      error instanceof Error ? error.message : "Unknown error type";
+    console.error("Download API error:", {
+      context,
+      downloadId: req.query.downloadId,
+    });
     res.status(500).json({ error: "Internal server error" });
   }
 }

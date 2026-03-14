@@ -12,6 +12,10 @@ import { useSpotifyDashboard } from "~/hooks/useSpotifyDashboard";
 export default function Home() {
   const { data: sessionData } = useSession();
   const dashboard = useSpotifyDashboard(!!sessionData?.user);
+  const selectedCollection =
+    dashboard.collectionsData?.collections.find(
+      (c) => c.id === dashboard.selectedCollectionId,
+    ) ?? null;
 
   return (
     <>
@@ -108,9 +112,7 @@ export default function Home() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-baseline gap-4">
                         <h2 className="text-3xl font-light tracking-tight text-white">
-                          {dashboard.collectionsData.collections.find(
-                            (c) => c.id === dashboard.selectedCollectionId,
-                          )?.name ?? "Collection"}
+                          {selectedCollection?.name ?? "Collection"}
                         </h2>
                         <span className="text-sm text-gray-400">
                           {dashboard.totalTracks}{" "}
@@ -137,21 +139,24 @@ export default function Home() {
                         Back to Collections
                       </button>
                     </div>
-                    <TrackMatcher
-                      collection={
-                        dashboard.collectionsData.collections.find(
-                          (c) => c.id === dashboard.selectedCollectionId,
-                        )!
-                      }
-                      tracks={dashboard.tracks}
-                      isLoading={dashboard.isInitialLoading}
-                      isPaginating={dashboard.isPaginating}
-                      showHeader={false}
-                      currentPage={dashboard.tracksPage}
-                      totalItems={dashboard.totalTracks}
-                      itemsPerPage={dashboard.tracksPerPage}
-                      onPageChange={dashboard.setTracksPage}
-                    />
+                    {selectedCollection ? (
+                      <TrackMatcher
+                        collection={selectedCollection}
+                        tracks={dashboard.tracks}
+                        isLoading={dashboard.isInitialLoading}
+                        isPaginating={dashboard.isPaginating}
+                        showHeader={false}
+                        currentPage={dashboard.tracksPage}
+                        totalItems={dashboard.totalTracks}
+                        itemsPerPage={dashboard.tracksPerPage}
+                        onPageChange={dashboard.setTracksPage}
+                      />
+                    ) : (
+                      <div className="glass rounded-2xl border border-white/20 p-6 text-sm text-gray-300">
+                        The selected collection is no longer available. Please
+                        go back and choose another collection.
+                      </div>
+                    )}
                   </section>
                 )}
 

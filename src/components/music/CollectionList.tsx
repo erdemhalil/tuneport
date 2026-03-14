@@ -1,5 +1,6 @@
 import { CollectionCard } from "./CollectionCard";
 import { Pagination } from "../ui/Pagination";
+import { SkeletonRepeater } from "../ui/SkeletonRepeater";
 import type { Collection } from "~/utils/types";
 
 interface CollectionListProps {
@@ -31,16 +32,18 @@ export function CollectionList({
           <p className="text-gray-400">Organizing your musical collections</p>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="glass animate-pulse rounded-2xl p-6">
-              <div className="mb-4 aspect-square w-full rounded-xl bg-white/10"></div>
-              <div className="space-y-3">
-                <div className="h-5 w-3/4 rounded bg-white/10"></div>
-                <div className="h-4 w-1/2 rounded bg-white/10"></div>
-                <div className="h-3 w-2/3 rounded bg-white/10"></div>
+          <SkeletonRepeater count={8}>
+            {(i) => (
+              <div key={i} className="glass animate-pulse rounded-2xl p-6">
+                <div className="mb-4 aspect-square w-full rounded-xl bg-white/10"></div>
+                <div className="space-y-3">
+                  <div className="h-5 w-3/4 rounded bg-white/10"></div>
+                  <div className="h-4 w-1/2 rounded bg-white/10"></div>
+                  <div className="h-3 w-2/3 rounded bg-white/10"></div>
+                </div>
               </div>
-            </div>
-          ))}
+            )}
+          </SkeletonRepeater>
         </div>
       </div>
     );

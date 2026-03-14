@@ -1,10 +1,26 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+vi.mock("~/env", () => ({
+  env: {
+    YOUTUBE_API_KEY: "test-youtube-api-key",
+  },
+}));
+
+vi.mock("~/server/lib/redis", () => ({
+  getRedisConnection: vi.fn(),
+}));
+
 import {
   calculateDurationConfidence,
   isYouTubeContentExplicit,
   isYouTubeContentClean,
+  YouTubeService,
   type VideoMetadata,
 } from "~/server/services/youtubeService";
+import { getRedisConnection } from "~/server/lib/redis";
+import type { Session } from "next-auth";
+
+const mockedGetRedisConnection = vi.mocked(getRedisConnection);
 
 describe("calculateDurationConfidence", () => {
   it("returns 100 for exact duration match", () => {
@@ -28,7 +44,7 @@ describe("calculateDurationConfidence", () => {
     expect(confidence).toBe(0);
   });
 
-  it("returns 0 when both durations are zero", () => {
+  it("returns 100 when both durations are zero", () => {
     expect(calculateDurationConfidence(0, 0)).toBe(100);
   });
 
@@ -151,5 +167,82 @@ describe("isYouTubeContentClean", () => {
     expect(isYouTubeContentClean(meta({ channel: "RADIO Station" }))).toBe(
       true,
     );
+  });
+});
+
+describe("YouTubeService.search", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedGetRedisConnection.mockReturnValue({
+      get: vi.fn().mockResolvedValue(null),
+      setex: vi.fn().mockResolvedValue("OK"),
+    } as never);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("accepts videos.list payload without snippet when requesting contentDetails,status", async () => {
+    const originalFetch = global.fetch;
+
+    const searchPayload = {
+      items: [
+        {
+          id: { videoId: "video-1" },
+          snippet: {
+            title: "Song Title",
+            channelTitle: "Channel Name",
+            thumbnails: {
+              default: { url: "https://img.youtube.com/default.jpg" },
+            },
+          },
+        },
+      ],
+    };
+
+    const videosPayload = {
+      items: [
+        {
+          id: "video-1",
+          contentDetails: { duration: "PT3M5S" },
+          status: {
+            madeForKids: false,
+            selfDeclaredMadeForKids: false,
+          },
+        },
+      ],
+    };
+
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(searchPayload), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(videosPayload), { status: 200 }),
+      );
+
+    global.fetch = fetchMock;
+
+    try {
+      const service = new YouTubeService({} as Session);
+      const result = await service.search({
+        trackName: "Song Title",
+        artistName: "Artist Name",
+        albumName: "Album Name",
+        durationMs: 180_000,
+      });
+
+      expect(result.matches).toHaveLength(1);
+      expect(result.matches[0]).toMatchObject({
+        videoId: "video-1",
+        title: "Song Title",
+        channel: "Channel Name",
+        duration: "PT3M5S",
+      });
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 });

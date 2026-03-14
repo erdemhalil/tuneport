@@ -24,9 +24,9 @@ const spotifyPlaylistSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
-  images: z.array(z.object({ url: z.string() })),
+  images: z.array(z.object({ url: z.string() })).nullable(),
   tracks: z.object({ total: z.number() }),
-  owner: z.object({ display_name: z.string() }),
+  owner: z.object({ display_name: z.string().nullable() }),
 });
 
 export type SpotifyPlaylist = z.infer<typeof spotifyPlaylistSchema>;
@@ -268,7 +268,7 @@ export class SpotifyService {
         description: playlist.description,
         image: playlist.images?.[0]?.url ?? null,
         track_count: playlist.tracks.total,
-        owner: playlist.owner.display_name,
+        owner: playlist.owner.display_name ?? "Spotify User",
         type: "playlist" as const,
       })),
     ];

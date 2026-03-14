@@ -37,15 +37,16 @@ export function useSpotifyDashboard(isAuthenticated: boolean) {
     );
 
   // Fetch collection tracks when a collection is selected
+  const collectionTracksInput = {
+    collectionId: selectedCollectionId ?? "",
+    limit: TRACKS_PER_PAGE,
+    offset: (tracksPage - 1) * TRACKS_PER_PAGE,
+  };
+
   const { data: collectionTracksData, isLoading: collectionTracksLoading } =
-    api.spotify.collectionTracks.useQuery(
-      {
-        collectionId: selectedCollectionId!,
-        limit: TRACKS_PER_PAGE,
-        offset: (tracksPage - 1) * TRACKS_PER_PAGE,
-      },
-      { enabled: isAuthenticated && !!selectedCollectionId },
-    );
+    api.spotify.collectionTracks.useQuery(collectionTracksInput, {
+      enabled: isAuthenticated && selectedCollectionId !== null,
+    });
 
   // Update cache when new data arrives
   useEffect(() => {

@@ -6,20 +6,11 @@ import {
   type ReactNode,
 } from "react";
 import { api } from "~/utils/api";
-import type { DownloadJob } from "~/utils/types";
+import type { DownloadJob, DownloadJobInput } from "~/utils/types";
 
 interface DownloadContextType {
   jobs: DownloadJob[];
-  addJobs: (
-    jobs: Array<{
-      jobId: string;
-      videoId: string;
-      trackName: string;
-      artistName: string;
-      allArtists?: string[];
-      artwork?: string;
-    }>,
-  ) => void;
+  addJobs: (jobs: DownloadJobInput[]) => void;
   removeJob: (jobId: string) => void;
   clearCompleted: () => void;
 }
@@ -63,16 +54,7 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
     }
   }, [statusQuery.data]);
 
-  const addJobs = (
-    newJobs: Array<{
-      jobId: string;
-      videoId: string;
-      trackName: string;
-      artistName: string;
-      allArtists?: string[];
-      artwork?: string;
-    }>,
-  ) => {
+  const addJobs = (newJobs: DownloadJobInput[]) => {
     const jobsToAdd = newJobs.map((job) => ({
       ...job,
       status: "waiting" as const,

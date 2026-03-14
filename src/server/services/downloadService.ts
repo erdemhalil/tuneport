@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 import { getDownloadQueue } from "~/server/queue/downloadQueue";
 import type {
   DownloadJobData,
@@ -106,14 +107,16 @@ export async function cleanupDownloads(
   return { cleaned };
 }
 
-export interface DownloadTrackInput {
-  videoId: string;
-  trackName: string;
-  artistName: string;
-  allArtists?: string[];
-  artwork?: string;
-  useArtistInFilename?: boolean;
-}
+export const downloadTrackInputSchema = z.object({
+  videoId: z.string(),
+  trackName: z.string(),
+  artistName: z.string(),
+  allArtists: z.array(z.string()).optional(),
+  artwork: z.string().optional(),
+  useArtistInFilename: z.boolean().optional(),
+});
+
+export type DownloadTrackInput = z.infer<typeof downloadTrackInputSchema>;
 
 export async function enqueueDownloads(
   tracks: DownloadTrackInput[],

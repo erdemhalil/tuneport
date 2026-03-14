@@ -49,3 +49,8 @@ export interface DownloadJob {
   failedReason?: string;
   error?: string;
 }
+
+export type DownloadJobInput = Pick<
+  DownloadJob,
+  "jobId" | "videoId" | "trackName" | "artistName" | "allArtists" | "artwork"
+>;

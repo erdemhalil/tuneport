@@ -206,6 +206,7 @@ describe("YouTubeService.search", () => {
         {
           id: "video-1",
           contentDetails: { duration: "PT3M5S" },
+          statistics: { viewCount: "184581" },
           status: {
             madeForKids: false,
             selfDeclaredMadeForKids: false,
@@ -240,6 +241,7 @@ describe("YouTubeService.search", () => {
         title: "Song Title",
         channel: "Channel Name",
         duration: "PT3M5S",
+        viewCount: 184581,
       });
     } finally {
       global.fetch = originalFetch;

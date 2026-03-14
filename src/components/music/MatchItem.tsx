@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { YouTubeSearchResult } from "~/utils/types";
 import { formatDuration } from "~/utils/duration";
+import { formatCompactNumber } from "~/utils/format";
 import { CheckmarkBadge } from "~/components/ui/CheckmarkBadge";
 
 interface MatchItemProps {
@@ -66,6 +67,13 @@ export function MatchItem({
           >
             {formatDuration(match.duration)}
           </span>
+          {match.viewCount != null && (
+            <span
+              className={`text-xs ${isSelected ? "text-purple-200" : "text-gray-500"}`}
+            >
+              {formatCompactNumber(match.viewCount)} views
+            </span>
+          )}
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-medium ${getConfidenceColor(match.confidence)}`}
           >

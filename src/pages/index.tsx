@@ -34,11 +34,19 @@ export default function Home() {
       {sessionData?.user ? (
         <div className="bg-page text-primary min-h-screen">
           {/* Header */}
-          <header className="border-edge bg-header sticky top-0 z-50 border-b backdrop-blur-md">
+          <header className="border-edge bg-header sticky top-0 z-50 border-b shadow-sm shadow-black/5 backdrop-blur-md">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
               <div className="flex h-14 items-center gap-3">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-primary h-6 w-1 rounded-full"></div>
+                <div className="flex items-center space-x-2.5">
+                  <div className="bg-accent flex h-7 w-7 items-center justify-center rounded-lg">
+                    <svg
+                      className="h-4 w-4 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                    </svg>
+                  </div>
                   <h1 className="text-primary text-lg font-semibold tracking-tight">
                     Tuneport
                   </h1>
@@ -79,7 +87,8 @@ export default function Home() {
                   >
                     {theme === "dark" ? (
                       <svg
-                        className="h-4 w-4"
+                        key="sun"
+                        className="animate-theme-toggle h-4 w-4"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -93,7 +102,8 @@ export default function Home() {
                       </svg>
                     ) : (
                       <svg
-                        className="h-4 w-4"
+                        key="moon"
+                        className="animate-theme-toggle h-4 w-4"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -128,7 +138,7 @@ export default function Home() {
                   </div>
                   <button
                     onClick={() => void signOut()}
-                    className="border-edge bg-surface text-secondary hover:bg-surface-hover hover:text-primary focus:ring-ring cursor-pointer rounded-md border px-2.5 py-1 text-sm font-medium transition-colors focus:ring-2 focus:outline-none"
+                    className="text-muted hover:text-primary cursor-pointer text-sm font-medium transition-colors"
                   >
                     Sign out
                   </button>
@@ -147,7 +157,7 @@ export default function Home() {
                   <section className="animate-fade-in flex h-full min-h-0 flex-col gap-4">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-baseline gap-4">
-                        <h2 className="text-primary text-2xl font-semibold tracking-tight">
+                        <h2 className="text-primary text-3xl font-semibold tracking-tight">
                           {selectedCollection?.name ?? "Collection"}
                         </h2>
                         <span className="text-muted text-sm">

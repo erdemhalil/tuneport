@@ -9,11 +9,11 @@ interface CollectionCardProps {
 export function CollectionCard({ collection, onClick }: CollectionCardProps) {
   return (
     <div
-      className="group animate-fade-in border-edge bg-surface hover:bg-surface-hover cursor-pointer rounded-xl border p-5 transition-colors"
+      className="group animate-fade-in border-edge bg-surface hover:bg-surface-hover cursor-pointer rounded-xl border p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5"
       onClick={onClick}
     >
       {/* Collection Cover */}
-      <div className="border-edge bg-inset relative mb-5 aspect-square overflow-hidden rounded-lg border">
+      <div className="border-edge bg-inset relative mb-4 aspect-square overflow-hidden rounded-lg border">
         {collection.image ? (
           <Image
             src={collection.image}
@@ -50,9 +50,13 @@ export function CollectionCard({ collection, onClick }: CollectionCardProps) {
         )}
 
         {/* Hover overlay */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/20">
-          <div className="border-edge bg-surface text-primary flex h-10 w-10 items-center justify-center rounded-lg border opacity-0 transition-opacity group-hover:opacity-100">
-            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/30">
+          <div className="bg-accent/90 flex h-12 w-12 scale-75 items-center justify-center rounded-full text-white opacity-0 shadow-lg transition-all duration-200 group-hover:scale-100 group-hover:opacity-100">
+            <svg
+              className="ml-0.5 h-5 w-5"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path d="M8 5v14l11-7z" />
             </svg>
           </div>

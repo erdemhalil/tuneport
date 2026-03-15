@@ -11,7 +11,7 @@ import { createDownloadId, isOwnedByUser } from "~/utils/types";
 import { removeDownloadedFile } from "./redisService";
 
 export function mapBullMQState(state: string): DownloadJobStatus {
-  const validStates: Set<string> = new Set([
+  const validStates = new Set<string>([
     "waiting",
     "active",
     "completed",

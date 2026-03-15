@@ -33,8 +33,8 @@ export function YouTubeMp3() {
     (mode === "url" && resolveResult.isLoading);
 
   const errorMessage =
-    (mode === "search" && searchResult.error?.message) ||
-    (mode === "url" && resolveResult.error?.message) ||
+    (mode === "search" && searchResult.error?.message) ??
+    (mode === "url" && resolveResult.error?.message) ??
     null;
 
   const matches =
@@ -130,7 +130,7 @@ export function YouTubeMp3() {
   return (
     <section className="animate-fade-in flex h-full min-h-0 flex-col gap-4">
       <div className="space-y-1">
-        <h2 className="text-primary text-2xl font-semibold tracking-tight">
+        <h2 className="text-primary text-3xl font-semibold tracking-tight">
           YouTube to MP3
         </h2>
         <p className="text-secondary text-sm">
@@ -205,8 +205,28 @@ export function YouTubeMp3() {
               )}
             </div>
           ) : (
-            <div className="text-muted py-10 text-center">
-              <p>Search for a song or paste a YouTube link to begin.</p>
+            <div className="flex flex-col items-center justify-center py-14 text-center">
+              <div className="border-edge bg-inset mb-4 flex h-14 w-14 items-center justify-center rounded-full border">
+                <svg
+                  className="text-muted h-7 w-7"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <h4 className="text-secondary mb-1 text-sm font-medium">
+                No results yet
+              </h4>
+              <p className="text-muted text-xs">
+                Search for a song or paste a YouTube link to begin.
+              </p>
             </div>
           )}
         </div>

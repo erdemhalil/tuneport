@@ -344,11 +344,12 @@ export class YouTubeService {
         const videoIds = searchData.items
           .map((item) => item.id.videoId)
           .join(",");
-        const detailsData = await this.fetchYouTubeApi<YouTubeVideoSummaryResponse>(
-          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status,statistics&id=${videoIds}`,
-          "Videos",
-          youTubeVideoSummaryResponseSchema,
-        );
+        const detailsData =
+          await this.fetchYouTubeApi<YouTubeVideoSummaryResponse>(
+            `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status,statistics&id=${videoIds}`,
+            "Videos",
+            youTubeVideoSummaryResponseSchema,
+          );
 
         const detailsById = new Map(
           detailsData.items.map((item) => [item.id, item]),
@@ -410,11 +411,12 @@ export class YouTubeService {
         }
 
         const videoIds = searchData.items.map((item) => item.id.videoId);
-        const detailsData = await this.fetchYouTubeApi<YouTubeVideoSummaryResponse>(
-          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status,statistics&id=${videoIds.join(",")}`,
-          "Videos",
-          youTubeVideoSummaryResponseSchema,
-        );
+        const detailsData =
+          await this.fetchYouTubeApi<YouTubeVideoSummaryResponse>(
+            `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status,statistics&id=${videoIds.join(",")}`,
+            "Videos",
+            youTubeVideoSummaryResponseSchema,
+          );
 
         const detailsById = new Map(
           detailsData.items.map((item) => [item.id, item]),
@@ -462,11 +464,12 @@ export class YouTubeService {
     return this.cachedFetch(
       cacheKey,
       async () => {
-        const detailsData = await this.fetchYouTubeApi<YouTubeVideoFullResponse>(
-          `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,status,statistics&id=${encodeURIComponent(trimmedId)}`,
-          "Videos",
-          youTubeVideoFullResponseSchema,
-        );
+        const detailsData =
+          await this.fetchYouTubeApi<YouTubeVideoFullResponse>(
+            `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,status,statistics&id=${encodeURIComponent(trimmedId)}`,
+            "Videos",
+            youTubeVideoFullResponseSchema,
+          );
 
         const item = detailsData.items?.[0];
         if (!item) {

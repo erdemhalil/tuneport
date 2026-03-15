@@ -98,7 +98,7 @@ export function DownloadProgressWidget() {
 
   return (
     <div className="animate-scale-in fixed right-6 bottom-6 z-50 w-88">
-      <div className="border-edge-strong bg-surface overflow-hidden rounded-xl border shadow-sm">
+      <div className="border-edge-strong bg-surface overflow-hidden rounded-xl border shadow-xl shadow-black/10">
         {/* Header */}
         <div className="border-edge bg-elevated flex items-center justify-between border-b px-5 py-4">
           <div className="flex items-center space-x-4">
@@ -142,7 +142,7 @@ export function DownloadProgressWidget() {
                     </span>
                   ),
                   failedJobs.length > 0 && (
-                    <span key="failed" className="font-medium text-rose-500">
+                    <span key="failed" className="font-medium text-rose-400">
                       {failedJobs.length} failed
                     </span>
                   ),

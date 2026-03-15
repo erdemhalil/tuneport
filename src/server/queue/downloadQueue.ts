@@ -1,4 +1,4 @@
-import { Queue } from "bullmq";
+import { Queue, type ConnectionOptions } from "bullmq";
 import { getRedisConnection } from "../lib/redis";
 
 let _queue: Queue | null = null;
@@ -9,14 +9,12 @@ let _queue: Queue | null = null;
  * `workers/downloadWorker.ts`; event handlers are wired up in `init.ts`.
  */
 export function getDownloadQueue(): Queue {
-  if (!_queue) {
-    _queue = new Queue("youtube-downloads", {
-      connection: getRedisConnection(),
-      defaultJobOptions: {
-        removeOnComplete: 50,
-        removeOnFail: 20,
-      },
-    });
-  }
+  _queue ??= new Queue("youtube-downloads", {
+    connection: getRedisConnection() as unknown as ConnectionOptions,
+    defaultJobOptions: {
+      removeOnComplete: 50,
+      removeOnFail: 20,
+    },
+  });
   return _queue;
 }

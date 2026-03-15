@@ -9,13 +9,11 @@ let _connection: IORedis | null = null;
  * same singleton instance.
  */
 export function getRedisConnection(): IORedis {
-  if (!_connection) {
-    _connection = new IORedis({
-      host: env.REDIS_HOST ?? "localhost",
-      port: parseInt(env.REDIS_PORT ?? "6379"),
-      password: env.REDIS_PASSWORD,
-      maxRetriesPerRequest: null,
-    });
-  }
+  _connection ??= new IORedis({
+    host: env.REDIS_HOST ?? "localhost",
+    port: parseInt(env.REDIS_PORT ?? "6379"),
+    password: env.REDIS_PASSWORD,
+    maxRetriesPerRequest: null,
+  });
   return _connection;
 }

@@ -1,102 +1,71 @@
-<div align="center">
-  <img src="./public/tuneport.png" alt="Tuneport Logo" width="120" height="120" style="border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);" />
-  
-  <h1 style="background: linear-gradient(135deg, #a855f7, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 3rem; font-weight: bold; margin: 1rem 0;">
-    Tuneport
-  </h1>
-  
-  <p style="font-size: 1.25rem; color: #6b7280; margin-bottom: 2rem;">
-    Spotify to YouTube MP3 downloader
-  </p>
-</div>
+# Tuneport
 
----
+Tuneport helps you move from streaming to ownership: sign in with Spotify, select tracks or playlists, match them on YouTube, and queue MP3 downloads with progress tracking.
 
-Tuneport connects your Spotify library to YouTube for high-quality MP3 downloads. Built with Next.js 15, tRPC, and BullMQ for queued processing.
+## What You Can Do
 
-## Features
+- Sign in with Spotify and browse liked songs or playlists
+- Match tracks against YouTube results
+- Queue single or batch downloads
+- Track active, completed, and failed jobs in the downloads widget
+- Use either Spotify Library mode or YouTube to MP3 mode
+- Switch between dark and light themes in the app
 
-- Spotify OAuth: Fetch liked songs & playlists
-- YouTube matching: Smart search by track/artist/duration
-- Batch queuing: Up to 50 tracks via BullMQ/Redis
-- Audio extraction: 320K MP3s with yt-dlp & ffmpeg
-- Responsive UI: Modern theme, progress tracking
-- Secure: NextAuth with PKCE
+## Stack
 
-## Screenshots
+- Next.js (Pages Router)
+- React + TypeScript
+- next-auth for Spotify authentication
+- tRPC for API routing
+- Tailwind CSS for styling
+- BullMQ + Redis for queueing and caching
+- yt-dlp + FFmpeg for audio extraction
 
-<div align="center">
-  <div style="display: flex; flex-direction: column; align-items: center;">
-    <h3>Browse Collections</h3>
-    <img src="./assets/collections.png" alt="Browse liked songs and playlists" height="400" style="object-fit: contain;" />
-  </div>
-  
-  <div style="display: flex; flex-direction: column; align-items: center; margin-top: 2rem;">
-    <h3>Track Downloads</h3>
-    <img src="./assets/downloads.png" alt="Download progress tracking" height="400" style="object-fit: contain;" />
-  </div>
-</div>
+## Requirements
 
-## Tech Stack
+- [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+- [Redis](https://hub.docker.com/_/redis)
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation) available in PATH
+- [FFmpeg](https://www.ffmpeg.org/download.html) available in PATH
+- [Spotify app credentials](https://developer.spotify.com/dashboard)
+- [YouTube Data API key](https://developers.google.com/youtube/registering_an_application)
 
-- Next.js 15 
-- tRPC + Zod
-- NextAuth (Spotify)
-- BullMQ + Redis (jobs)
-- yt-dlp (downloads)
-- Tailwind CSS v4 + TypeScript
+## Setup
 
-## Quickstart
+1. Install dependencies:
 
-### Prerequisites
-
-#### **Redis** (Cache & Job Queue):
-
-BullMQ uses `Redis` for job queuing, and the app caches files and API responses in Redis. If `docker` is available, you can start a Redis instance with:
-```bash
-docker run -d -p 6379:6379 redis:alpine
-```
-
-For more installation options, visit [Redis' GitHub repository](https://github.com/redis/redis).
-
-#### **yt-dlp** (Downloader):
-Downloads YouTube videos and extracts high-quality MP3 audio. If Python is installed, you can install yt-dlp with:
-```bash
-pip install yt-dlp
-```
-
-#### **FFmpeg** (Audio Processing):
-Required by yt-dlp for audio format conversion and extraction
-Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH
-
-### Setup Steps
-
-1. Clone & install:
    ```bash
-   git clone <repo> tuneport
-   cd tuneport
    npm install
    ```
 
-2. Setup `.env.local` from `.env.example`:
-   - `AUTH_SECRET`: `npx auth secret`
-   - Spotify: Client ID/Secret from [developer.spotify.com](https://developer.spotify.com/dashboard)
-   - YouTube: API key from [Google Console](https://console.cloud.google.com/apis/library/youtube.googleapis.com)
-   - Redis: Defaults to localhost:6379
+2. Create your local env file from `.env.example` and fill in values:
+   - `AUTH_SECRET` (generate with `npx auth secret`)
+   - `SPOTIFY_CLIENT_ID`
+   - `SPOTIFY_CLIENT_SECRET`
+   - `YOUTUBE_API_KEY`
+   - `REDIS_HOST`
+   - `REDIS_PORT`
+   - `REDIS_PASSWORD` (optional)
 
-3. Start Redis server (in a separate terminal):
+3. Start Redis (example with Docker):
 
-4. Run the development server:
+   ```bash
+   docker run -d -p 6379:6379 redis:alpine
+   ```
+
+4. Start the app:
+
    ```bash
    npm run dev
    ```
-   Visit http://localhost:3000, auth with Spotify, and start downloading.
 
-## Commands
+5. Open http://localhost:3000
 
-- `npm run dev` - Dev server (Turbopack)
-- `npm run build` - Production build
-- `npm run start` - Production server
-- `npm run check` - Lint + types
-- `npm run lint:fix` - Fix lint
-- `npm run format:write` - Format (Prettier/Tailwind)
+## Scripts
+
+- `npm run dev` - Start development server
+- `npm run lint` - Run ESLint
+- `npm run typecheck` - Run TypeScript checks
+- `npm run check` - Run lint + typecheck
+- `npm run format:write` - Format files
+- `npm run test` - Run tests

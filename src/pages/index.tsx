@@ -26,8 +26,6 @@ export default function Home() {
           name="description"
           content="Transform your Spotify library into something extraordinary"
         />
-        <link rel="icon" href="/tuneport.png" type="image/png" sizes="32x32" />
-        <link rel="icon" href="/tuneport.png" type="image/png" sizes="16x16" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 

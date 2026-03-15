@@ -5,7 +5,7 @@ export function AuthShowcase() {
   const { data: sessionData } = useSession();
 
   return (
-    <div className="rounded-3xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-xl">
+    <div className="rounded-xl border border-zinc-300 bg-white p-6">
       {sessionData?.user ? (
         <div className="space-y-6 text-center">
           <div className="flex flex-col items-center space-y-4">
@@ -16,17 +16,17 @@ export function AuthShowcase() {
                   alt="Profile"
                   width={80}
                   height={80}
-                  className="rounded-full shadow-lg ring-4 ring-white/20"
+                  className="rounded-full border border-zinc-300"
                 />
-                <div className="absolute -right-1 -bottom-1 h-6 w-6 rounded-full border-3 border-slate-900 bg-green-400 shadow-lg"></div>
+                <div className="absolute -right-1 -bottom-1 h-6 w-6 rounded-full border-2 border-white bg-zinc-900"></div>
               </div>
             )}
             <div className="space-y-1">
-              <h3 className="text-xl font-semibold text-white">Welcome back</h3>
-              <p className="font-medium text-gray-300">
+              <h3 className="text-xl font-semibold text-zinc-900">Welcome back</h3>
+              <p className="font-medium text-zinc-700">
                 {sessionData.user.name}
               </p>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-zinc-500">
                 Ready to download your music?
               </p>
             </div>
@@ -34,7 +34,7 @@ export function AuthShowcase() {
 
           <button
             onClick={() => void signOut()}
-            className="w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:from-red-700 hover:to-red-800 hover:shadow-xl focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
+            className="w-full rounded-md border border-zinc-900 bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
           >
             Sign out
           </button>
@@ -42,10 +42,10 @@ export function AuthShowcase() {
       ) : (
         <div className="space-y-6 text-center">
           <div className="space-y-3">
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-2xl font-semibold text-zinc-900">
               Connect with Spotify
             </h2>
-            <p className="leading-relaxed text-gray-300">
+            <p className="leading-relaxed text-zinc-600">
               Link your Spotify account to start downloading your favorite
               tracks
             </p>
@@ -53,10 +53,10 @@ export function AuthShowcase() {
 
           <button
             onClick={() => void signIn("spotify")}
-            className="group flex w-full items-center justify-center space-x-4 rounded-2xl bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-600 hover:to-green-700 hover:shadow-xl focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
+            className="group flex w-full items-center justify-center space-x-3 rounded-md border border-zinc-900 bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
           >
             <svg
-              className="h-6 w-6 transition-transform group-hover:scale-110"
+              className="h-5 w-5"
               viewBox="0 0 24 24"
               fill="currentColor"
             >
@@ -65,7 +65,7 @@ export function AuthShowcase() {
             <span>Continue with Spotify</span>
           </button>
 
-          <p className="text-xs leading-relaxed text-gray-400">
+          <p className="text-xs leading-relaxed text-zinc-500">
             We only access your music library and playlists. Your data stays
             secure and private.
           </p>

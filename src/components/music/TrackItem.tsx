@@ -17,34 +17,30 @@ export function TrackItem({
   onClick,
 }: TrackItemProps) {
   const baseClasses =
-    "group glass relative flex cursor-pointer items-center space-x-4 rounded-2xl p-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.02]";
+    "group relative flex cursor-pointer items-center space-x-4 rounded-xl border border-zinc-300 bg-white p-4 transition-colors";
   const stateClasses = isCurrent
-    ? "bg-gradient-to-r from-purple-500/50 to-blue-500/50 ring-2 ring-purple-300 ring-offset-2 ring-offset-slate-900 shadow-xl shadow-purple-500/30 scale-[1.02] border border-purple-300/50"
+    ? "border-zinc-900 bg-zinc-100"
     : isSelected
-      ? "bg-emerald-500/30 ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-900 shadow-lg shadow-emerald-500/20"
-      : "hover:bg-white/15 hover:ring-1 hover:ring-white/30";
+      ? "border-zinc-500 bg-zinc-50"
+      : "hover:bg-zinc-50";
 
   return (
     <div className={`${baseClasses} ${stateClasses}`} onClick={onClick}>
-      <div className="relative flex-shrink-0">
+      <div className="relative shrink-0">
         {track.album.image && (
           <Image
             src={track.album.image}
             alt={track.album.name}
             width={56}
             height={56}
-            className={`h-14 w-14 rounded-xl object-cover shadow-sm transition-all duration-200 ${
-              isCurrent
-                ? "shadow-lg ring-2 shadow-purple-500/30 ring-purple-300"
-                : ""
-            }`}
+            className={`h-14 w-14 rounded-lg border border-zinc-300 object-cover ${isCurrent ? "border-zinc-900" : ""}`}
           />
         )}
         {isSelected && (
           <CheckmarkBadge
             color="emerald"
             size="md"
-            className="absolute -top-1 -right-1 shadow-sm"
+            className="absolute -top-1 -right-1"
           />
         )}
       </div>
@@ -54,16 +50,16 @@ export function TrackItem({
           <h4
             className={`truncate text-sm font-medium transition-colors ${
               isCurrent
-                ? "font-semibold text-white"
+                ? "font-semibold text-zinc-900"
                 : isSelected
-                  ? "text-emerald-200"
-                  : "text-white group-hover:text-purple-300"
+                  ? "text-zinc-900"
+                  : "text-zinc-800"
             }`}
           >
             {track.name}
           </h4>
           {track.explicit && (
-            <span className="inline-flex items-center rounded-md bg-white/20 px-1.5 py-0.5 text-xs font-medium text-gray-300">
+            <span className="inline-flex items-center rounded border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 text-xs font-medium text-zinc-600">
               E
             </span>
           )}
@@ -71,10 +67,10 @@ export function TrackItem({
         <p
           className={`truncate text-xs transition-colors ${
             isCurrent
-              ? "text-purple-100"
+              ? "text-zinc-700"
               : isSelected
-                ? "text-gray-300"
-                : "text-gray-400 group-hover:text-gray-300"
+                ? "text-zinc-600"
+                : "text-zinc-500"
           }`}
         >
           {track.artists.join(", ")} • {track.album.name}
@@ -82,10 +78,10 @@ export function TrackItem({
         <p
           className={`text-xs font-medium transition-colors ${
             isCurrent
-              ? "text-purple-200"
+              ? "text-zinc-700"
               : isSelected
-                ? "text-gray-400"
-                : "text-gray-500 group-hover:text-gray-400"
+                ? "text-zinc-500"
+                : "text-zinc-500"
           }`}
         >
           {formatDurationMs(track.duration_ms)}
@@ -93,7 +89,7 @@ export function TrackItem({
       </div>
 
       {isCurrent && (
-        <div className="absolute top-1/2 right-4 flex h-8 w-8 -translate-y-1/2 animate-pulse items-center justify-center rounded-full bg-purple-500 shadow-lg">
+        <div className="absolute top-1/2 right-4 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-900 bg-zinc-900">
           <svg
             className="h-4 w-4 text-white"
             fill="none"

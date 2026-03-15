@@ -9,11 +9,11 @@ interface CollectionCardProps {
 export function CollectionCard({ collection, onClick }: CollectionCardProps) {
   return (
     <div
-      className="group animate-fade-in cursor-pointer rounded-xl border border-zinc-300 bg-white p-5 transition-colors hover:bg-zinc-50"
+      className="group animate-fade-in border-edge bg-surface hover:bg-surface-hover cursor-pointer rounded-xl border p-5 transition-colors"
       onClick={onClick}
     >
       {/* Collection Cover */}
-      <div className="relative mb-5 aspect-square overflow-hidden rounded-lg border border-zinc-300 bg-zinc-100">
+      <div className="border-edge bg-inset relative mb-5 aspect-square overflow-hidden rounded-lg border">
         {collection.image ? (
           <Image
             src={collection.image}
@@ -25,13 +25,13 @@ export function CollectionCard({ collection, onClick }: CollectionCardProps) {
           <div
             className={
               collection.type === "liked_songs"
-                ? "flex h-full w-full items-center justify-center bg-zinc-200"
-                : "flex h-full w-full items-center justify-center bg-zinc-100"
+                ? "bg-surface-hover flex h-full w-full items-center justify-center"
+                : "bg-inset flex h-full w-full items-center justify-center"
             }
           >
             {collection.type === "liked_songs" ? (
               <svg
-                className="h-14 w-14 text-zinc-700"
+                className="text-secondary h-14 w-14"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -39,7 +39,7 @@ export function CollectionCard({ collection, onClick }: CollectionCardProps) {
               </svg>
             ) : (
               <svg
-                className="h-12 w-12 text-gray-400"
+                className="text-muted h-12 w-12"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -50,13 +50,9 @@ export function CollectionCard({ collection, onClick }: CollectionCardProps) {
         )}
 
         {/* Hover overlay */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/15">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-900 opacity-0 transition-opacity group-hover:opacity-100">
-            <svg
-              className="h-5 w-5"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
+        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/20">
+          <div className="border-edge bg-surface text-primary flex h-10 w-10 items-center justify-center rounded-lg border opacity-0 transition-opacity group-hover:opacity-100">
+            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
             </svg>
           </div>
@@ -66,17 +62,17 @@ export function CollectionCard({ collection, onClick }: CollectionCardProps) {
       {/* Collection Info */}
       <div className="space-y-3">
         <div>
-          <h3 className="truncate text-base font-medium text-zinc-900">
+          <h3 className="text-primary truncate text-base font-medium">
             {collection.name}
           </h3>
         </div>
 
         <div className="flex items-center justify-between text-sm">
-          <span className="font-medium text-zinc-700">
+          <span className="text-secondary font-medium">
             {collection.track_count} song
             {collection.track_count === 1 ? "" : "s"}
           </span>
-          <span className="text-xs text-zinc-500">by {collection.owner}</span>
+          <span className="text-muted text-xs">by {collection.owner}</span>
         </div>
       </div>
     </div>

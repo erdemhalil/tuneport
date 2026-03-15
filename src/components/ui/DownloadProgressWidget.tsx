@@ -54,7 +54,7 @@ export function DownloadProgressWidget() {
       <div className="animate-scale-in fixed right-6 bottom-6 z-50">
         <button
           onClick={() => setIsMinimized(false)}
-          className="group flex w-72 items-center justify-between rounded-xl border border-zinc-400 bg-zinc-100 px-4 py-2.5 transition-colors hover:bg-zinc-200"
+          className="group border-edge-strong bg-elevated hover:bg-surface-hover flex w-72 items-center justify-between rounded-xl border px-4 py-2.5 transition-colors"
           aria-label="Expand downloads panel"
           title="Expand downloads"
         >
@@ -62,12 +62,14 @@ export function DownloadProgressWidget() {
             <div className="relative">
               <div className="h-3 w-3 rounded-full bg-sky-600"></div>
               {activeJobs.length > 0 && (
-                <div className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border border-zinc-100 bg-emerald-500"></div>
+                <div className="border-elevated absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border bg-emerald-500"></div>
               )}
             </div>
             <div className="flex min-w-0 flex-col items-start justify-center leading-tight">
-              <div className="text-sm font-semibold text-zinc-900">Downloads</div>
-              <div className="text-xs text-zinc-500">
+              <div className="text-primary text-sm font-semibold">
+                Downloads
+              </div>
+              <div className="text-secondary text-xs">
                 {activeJobs.length > 0
                   ? `${activeJobs.length} active`
                   : `${jobs.length} total`}
@@ -76,7 +78,7 @@ export function DownloadProgressWidget() {
           </div>
           <div className="flex items-center">
             <svg
-              className="h-6 w-6 text-zinc-600 transition-colors group-hover:text-zinc-900"
+              className="text-muted group-hover:text-primary h-6 w-6 transition-colors"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -96,14 +98,14 @@ export function DownloadProgressWidget() {
 
   return (
     <div className="animate-scale-in fixed right-6 bottom-6 z-50 w-88">
-      <div className="overflow-hidden rounded-xl border border-zinc-400 bg-zinc-100 shadow-sm">
+      <div className="border-edge-strong bg-surface overflow-hidden rounded-xl border shadow-sm">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-300 bg-zinc-200 px-5 py-4">
+        <div className="border-edge bg-elevated flex items-center justify-between border-b px-5 py-4">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-300 bg-zinc-50">
+              <div className="border-edge bg-inset flex h-10 w-10 items-center justify-center rounded-lg border">
                 <svg
-                  className="h-5 w-5 text-sky-700"
+                  className="h-5 w-5 text-sky-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -117,28 +119,30 @@ export function DownloadProgressWidget() {
                 </svg>
               </div>
               {activeJobs.length > 0 && (
-                <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-zinc-200 bg-emerald-500"></div>
+                <div className="border-elevated absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 bg-emerald-500"></div>
               )}
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-semibold text-zinc-900">Downloads</h3>
-              <div className="text-sm text-zinc-500">
+              <h3 className="text-primary text-base font-semibold">
+                Downloads
+              </h3>
+              <div className="text-secondary text-sm">
                 {[
                   activeJobs.length > 0 && (
-                    <span key="active" className="font-medium text-sky-700">
+                    <span key="active" className="font-medium text-sky-500">
                       {activeJobs.length} active
                     </span>
                   ),
                   completedJobs.length > 0 && (
                     <span
                       key="completed"
-                      className="font-medium text-emerald-700"
+                      className="font-medium text-emerald-500"
                     >
                       {completedJobs.length} completed
                     </span>
                   ),
                   failedJobs.length > 0 && (
-                    <span key="failed" className="font-medium text-rose-700">
+                    <span key="failed" className="font-medium text-rose-500">
                       {failedJobs.length} failed
                     </span>
                   ),
@@ -154,7 +158,7 @@ export function DownloadProgressWidget() {
             {completedJobs.length > 0 && (
               <button
                 onClick={handleClearCompleted}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-300 bg-zinc-50 text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+                className="border-edge bg-inset text-secondary hover:bg-surface-hover hover:text-primary inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors"
                 title="Clear completed downloads"
               >
                 <svg
@@ -174,7 +178,7 @@ export function DownloadProgressWidget() {
             )}
             <button
               onClick={() => setIsMinimized(true)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-300 bg-zinc-50 text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+              className="border-edge bg-inset text-secondary hover:bg-surface-hover hover:text-primary inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors"
               title="Minimize downloads"
             >
               <svg
@@ -220,14 +224,18 @@ export function DownloadProgressWidget() {
 
         {/* Footer */}
         {jobs.length > 3 && (
-          <div className="border-t border-zinc-300 bg-zinc-200 px-5 py-2.5">
+          <div className="border-edge bg-elevated border-t px-5 py-2.5">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="group flex w-full items-center justify-center gap-2 text-xs font-medium text-zinc-700 transition-colors hover:text-zinc-900"
+              className="group text-secondary hover:text-primary flex w-full items-center justify-center gap-2 text-xs font-medium transition-colors"
               title={isExpanded ? "Collapse downloads" : "Expand downloads"}
-              aria-label={isExpanded ? "Collapse downloads" : "Expand downloads"}
+              aria-label={
+                isExpanded ? "Collapse downloads" : "Expand downloads"
+              }
             >
-              <span>{isExpanded ? "Show less" : `Show all ${jobs.length} downloads`}</span>
+              <span>
+                {isExpanded ? "Show less" : `Show all ${jobs.length} downloads`}
+              </span>
               <svg
                 className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : "rotate-0"}`}
                 fill="none"

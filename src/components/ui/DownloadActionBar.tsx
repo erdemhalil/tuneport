@@ -14,27 +14,27 @@ export function DownloadActionBar({
   if (selectedCount === 0) return null;
 
   return (
-    <div className="animate-slide-in sticky bottom-0 z-20 rounded-xl border border-zinc-300 bg-white p-3">
+    <div className="animate-slide-in border-edge bg-elevated sticky bottom-0 z-20 rounded-xl border p-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1">
-          <div className="text-sm font-semibold text-zinc-900">
+          <div className="text-primary text-sm font-semibold">
             {selectedCount} {selectedCount === 1 ? "track" : "tracks"} ready
           </div>
-          <div className="text-xs text-zinc-500">
+          <div className="text-secondary text-xs">
             Selected and ready for download
           </div>
         </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={onClear}
-            className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
+            className="border-edge bg-surface text-secondary hover:bg-surface-hover focus:ring-ring rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus:ring-2 focus:outline-none"
           >
             Clear All
           </button>
           <button
             onClick={onDownload}
             disabled={isPending}
-            className="flex items-center space-x-2 rounded-md border border-zinc-900 bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus:ring-2 focus:ring-zinc-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-accent bg-accent hover:bg-accent-hover focus:ring-accent/40 flex items-center space-x-2 rounded-md border px-3 py-1.5 text-sm font-medium text-white transition-colors focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isPending ? (
               <>

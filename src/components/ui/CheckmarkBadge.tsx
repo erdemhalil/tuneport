@@ -5,8 +5,8 @@ interface CheckmarkBadgeProps {
 }
 
 const colorClasses = {
-  purple: "bg-zinc-900",
-  emerald: "bg-emerald-600",
+  purple: "bg-primary",
+  emerald: "bg-emerald-500",
 } as const;
 
 const sizeClasses = {

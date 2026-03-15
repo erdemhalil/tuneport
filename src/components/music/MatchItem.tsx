@@ -18,17 +18,17 @@ export function MatchItem({
   onPreview,
 }: MatchItemProps) {
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 85) return "text-emerald-900 bg-emerald-100";
-    if (confidence >= 70) return "text-lime-900 bg-lime-100";
-    if (confidence >= 55) return "text-amber-900 bg-amber-100";
-    return "text-rose-900 bg-rose-100";
+    if (confidence >= 85) return "text-emerald-500 bg-emerald-500/15";
+    if (confidence >= 70) return "text-lime-500 bg-lime-500/15";
+    if (confidence >= 55) return "text-amber-500 bg-amber-500/15";
+    return "text-rose-500 bg-rose-500/15";
   };
 
   const baseClasses =
     "flex cursor-pointer items-center space-x-3 rounded-lg border p-3 transition-colors";
   const selectedClasses = isSelected
-    ? "border-zinc-900 bg-zinc-100"
-    : "border-zinc-300 bg-white hover:bg-zinc-50";
+    ? "border-edge-strong bg-surface-hover"
+    : "border-edge bg-surface hover:bg-surface-hover";
 
   return (
     <div className={`${baseClasses} ${selectedClasses}`} onClick={onSelect}>
@@ -39,38 +39,38 @@ export function MatchItem({
           src={match.thumbnail}
           alt={match.title}
           fill
-          className={`rounded-lg border object-cover ${isSelected ? "border-zinc-900" : "border-zinc-300"}`}
+          className={`rounded-lg border object-cover ${isSelected ? "border-edge-strong" : "border-edge"}`}
         />
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center space-x-2">
           <h4
-            className={`truncate text-sm font-medium transition-colors ${isSelected ? "font-semibold text-zinc-900" : "text-zinc-900"}`}
+            className={`text-primary truncate text-sm font-medium transition-colors ${isSelected ? "font-semibold" : ""}`}
           >
             {match.title}
           </h4>
           {match.explicit && (
-            <span className="inline-flex items-center rounded border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 text-xs font-medium text-zinc-600">
+            <span className="border-edge bg-inset text-secondary inline-flex items-center rounded border px-1.5 py-0.5 text-xs font-medium">
               E
             </span>
           )}
           {match.clean && (
-            <span className="inline-flex items-center rounded border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 text-xs font-medium text-zinc-600">
+            <span className="border-edge bg-inset text-secondary inline-flex items-center rounded border px-1.5 py-0.5 text-xs font-medium">
               C
             </span>
           )}
         </div>
-        <p className="truncate text-xs text-zinc-500">{match.channel}</p>
+        <p className="text-secondary truncate text-xs">{match.channel}</p>
         <div className="mt-1 flex items-center space-x-2">
           <span
-            className={`text-xs ${isSelected ? "text-zinc-700" : "text-zinc-500"}`}
+            className={`text-xs ${isSelected ? "text-secondary" : "text-muted"}`}
           >
             {formatDuration(match.duration)}
           </span>
           {match.viewCount != null && (
             <span
-              className={`text-xs ${isSelected ? "text-zinc-700" : "text-zinc-500"}`}
+              className={`text-xs ${isSelected ? "text-secondary" : "text-muted"}`}
             >
               {formatCompactNumber(match.viewCount)} views
             </span>
@@ -89,7 +89,7 @@ export function MatchItem({
             e.stopPropagation();
             onPreview();
           }}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-700 transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-800 focus:ring-2 focus:ring-red-300 focus:outline-none"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-500/20 bg-red-500/10 text-red-500 transition-colors hover:bg-red-500/20 hover:text-red-400 focus:ring-2 focus:ring-red-500/30 focus:outline-none"
           title="Preview on YouTube"
           aria-label="Open this track preview on YouTube"
         >

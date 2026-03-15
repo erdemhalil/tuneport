@@ -12,15 +12,15 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
   const getStatusColor = (status: DownloadJobStatus) => {
     switch (status) {
       case "completed":
-        return "text-emerald-700";
+        return "text-emerald-500";
       case "failed":
-        return "text-rose-700";
+        return "text-rose-500";
       case "active":
-        return "text-sky-700";
+        return "text-sky-500";
       case "waiting":
-        return "text-amber-700";
+        return "text-amber-500";
       default:
-        return "text-zinc-500";
+        return "text-muted";
     }
   };
 
@@ -28,9 +28,9 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
     switch (status) {
       case "completed":
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-emerald-200 bg-emerald-100">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/15">
             <svg
-              className="h-3 w-3 text-emerald-700"
+              className="h-3 w-3 text-emerald-500"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -44,9 +44,9 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
         );
       case "failed":
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-rose-200 bg-rose-100">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-rose-500/20 bg-rose-500/15">
             <svg
-              className="h-3 w-3 text-rose-700"
+              className="h-3 w-3 text-rose-500"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -60,9 +60,9 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
         );
       case "active":
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-sky-200 bg-sky-100">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-sky-500/20 bg-sky-500/15">
             <svg
-              className="h-3 w-3 animate-spin text-sky-700"
+              className="h-3 w-3 animate-spin text-sky-500"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -76,9 +76,9 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
         );
       default:
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-amber-200 bg-amber-100">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/15">
             <svg
-              className="h-3 w-3 text-amber-700"
+              className="h-3 w-3 text-amber-500"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -93,11 +93,12 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
     }
   };
 
-  const progressStep = Math.round(Math.min(100, Math.max(0, job.progress)) / 5) * 5;
+  const progressStep =
+    Math.round(Math.min(100, Math.max(0, job.progress)) / 5) * 5;
   const progressClass = `w-progress-${progressStep}`;
 
   return (
-    <div className="border-b border-zinc-300 bg-zinc-50/70 last:border-b-0">
+    <div className="border-edge bg-surface/70 border-b last:border-b-0">
       <div className="space-y-3 p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-center space-x-3">
@@ -110,15 +111,15 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
                   alt={`${job.trackName} album art`}
                   width={48}
                   height={48}
-                  className="h-12 w-12 rounded-lg border border-zinc-300 object-cover"
+                  className="border-edge h-12 w-12 rounded-lg border object-cover"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
                   }}
                 />
               ) : (
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-zinc-300 bg-zinc-100">
+                <div className="border-edge bg-inset flex h-12 w-12 items-center justify-center rounded-lg border">
                   <svg
-                    className="h-6 w-6 text-zinc-500"
+                    className="text-muted h-6 w-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -134,10 +135,10 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <h4 className="truncate text-sm font-semibold text-zinc-900">
+              <h4 className="text-primary truncate text-sm font-semibold">
                 {job.trackName}
               </h4>
-              <p className="mt-0.5 truncate text-xs text-zinc-600">
+              <p className="text-secondary mt-0.5 truncate text-xs">
                 {job.allArtists && job.allArtists.length > 0
                   ? job.allArtists.join(", ")
                   : job.artistName}
@@ -150,7 +151,7 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
               onDownload && (
                 <button
                   onClick={onDownload}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-zinc-900 bg-zinc-900 text-white transition-colors hover:bg-zinc-800"
+                  className="border-accent bg-accent hover:bg-accent-hover inline-flex h-8 w-8 items-center justify-center rounded-md border text-white transition-colors"
                   title="Download file"
                 >
                   <svg
@@ -170,7 +171,7 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
               )}
             <button
               onClick={onRemove}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-zinc-300 bg-zinc-100 text-zinc-700 transition-colors hover:bg-zinc-200 hover:text-zinc-900"
+              className="border-edge bg-inset text-secondary hover:bg-surface-hover hover:text-primary inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors"
               title="Remove download"
             >
               <svg
@@ -193,13 +194,13 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
         {/* Progress Bar */}
         {job.status === "active" && (
           <div className="space-y-2">
-            <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
+            <div className="bg-inset relative h-2.5 w-full overflow-hidden rounded-full">
               <div
-                className={`absolute top-0 left-0 h-2.5 rounded-full bg-sky-600 transition-all duration-300 ${progressClass}`}
+                className={`absolute top-0 left-0 h-2.5 rounded-full bg-sky-500 transition-all duration-300 ${progressClass}`}
               />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-sky-700">
+              <span className="text-xs font-semibold text-sky-500">
                 {Math.round(progressStep)}%
               </span>
             </div>
@@ -209,7 +210,9 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
         {/* Failure message */}
         {job.status === "failed" && (
           <div className="flex items-center justify-between">
-            <span className={`text-xs font-medium ${getStatusColor(job.status)}`}>
+            <span
+              className={`text-xs font-medium ${getStatusColor(job.status)}`}
+            >
               {job.failedReason ?? job.error ?? "Error occurred"}
             </span>
           </div>

@@ -130,15 +130,15 @@ export function YouTubeMp3() {
   return (
     <section className="animate-fade-in flex h-full min-h-0 flex-col gap-4">
       <div className="space-y-1">
-        <h2 className="text-2xl font-semibold tracking-tight text-zinc-900">
+        <h2 className="text-primary text-2xl font-semibold tracking-tight">
           YouTube to MP3
         </h2>
-        <p className="text-sm text-zinc-500">
+        <p className="text-secondary text-sm">
           Search YouTube or paste a video link to download MP3s instantly.
         </p>
       </div>
 
-      <div className="rounded-xl border border-zinc-300 bg-white p-4">
+      <div className="border-edge bg-surface rounded-xl border p-4">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative flex-1">
@@ -146,19 +146,19 @@ export function YouTubeMp3() {
                 value={inputValue}
                 onChange={(event) => setInputValue(event.target.value)}
                 placeholder="Search YouTube or paste a link"
-                className="w-full rounded-md border border-zinc-300 bg-white px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/20 focus:outline-none"
+                className="border-edge bg-inset text-primary placeholder:text-muted focus:border-edge-strong focus:ring-ring w-full rounded-md border px-4 py-2.5 text-sm focus:ring-2 focus:outline-none"
               />
             </div>
             <button
               type="submit"
-              className="rounded-md border border-zinc-900 bg-zinc-900 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
+              className="border-accent bg-accent hover:bg-accent-hover focus:ring-accent/40 rounded-md border px-6 py-2.5 text-sm font-medium text-white transition-colors focus:ring-2 focus:outline-none"
             >
               Search
             </button>
           </div>
 
           {inputError && (
-            <div className="rounded-md border border-zinc-300 bg-zinc-100 p-3 text-xs text-zinc-700">
+            <div className="border-edge bg-inset text-secondary rounded-md border p-3 text-xs">
               {inputError}
             </div>
           )}
@@ -166,15 +166,15 @@ export function YouTubeMp3() {
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3">
-        <h3 className="text-xl font-semibold text-zinc-900">Results</h3>
-        <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-zinc-300 bg-white p-4">
+        <h3 className="text-primary text-xl font-semibold">Results</h3>
+        <div className="border-edge bg-surface min-h-0 flex-1 overflow-y-auto rounded-xl border p-4">
           {isLoading ? (
-            <div className="flex items-center justify-center space-x-2 py-10 text-zinc-500">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-900"></div>
+            <div className="text-muted flex items-center justify-center space-x-2 py-10">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--spinner-track)] border-t-[var(--spinner-head)]"></div>
               <span>Searching YouTube...</span>
             </div>
           ) : errorMessage ? (
-            <div className="rounded-md border border-zinc-300 bg-zinc-100 p-4 text-sm text-zinc-700">
+            <div className="border-edge bg-inset text-secondary rounded-md border p-4 text-sm">
               {errorMessage}
             </div>
           ) : matches.length > 0 ? (
@@ -197,7 +197,7 @@ export function YouTubeMp3() {
                 <div className="flex justify-center pt-2">
                   <button
                     onClick={() => setDisplayLimit((prev) => prev + 5)}
-                    className="rounded-md border border-zinc-300 bg-zinc-50 px-4 py-2 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100"
+                    className="border-edge bg-surface-hover text-secondary hover:bg-elevated rounded-md border px-4 py-2 text-xs font-medium transition-colors"
                   >
                     Load more
                   </button>
@@ -205,7 +205,7 @@ export function YouTubeMp3() {
               )}
             </div>
           ) : (
-            <div className="py-10 text-center text-zinc-500">
+            <div className="text-muted py-10 text-center">
               <p>Search for a song or paste a YouTube link to begin.</p>
             </div>
           )}

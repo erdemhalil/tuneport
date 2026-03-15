@@ -1,6 +1,91 @@
 @import "tailwindcss";
 
-/* Global styles */
+/* ───────────────────────────────────────────────
+   Theme tokens — dark is the default
+   ─────────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg: #0f0f11;
+  --surface: #1a1a1e;
+  --surface-hover: #222226;
+  --elevated: #1e1e23;
+  --inset: #141418;
+  --header-bg: rgba(15, 15, 17, 0.85);
+
+  /* Borders */
+  --edge: #2a2a2e;
+  --edge-strong: #363639;
+
+  /* Text */
+  --tx-primary: #ececee;
+  --tx-secondary: #9b9ba3;
+  --tx-muted: #5e5e67;
+
+  /* Focus ring */
+  --ring: rgba(255, 255, 255, 0.25);
+
+  /* Scrollbar */
+  --scrollbar-track: #1a1a1e;
+  --scrollbar-thumb: #363639;
+  --scrollbar-thumb-hover: #48484d;
+
+  /* Spinner */
+  --spinner-track: #2a2a2e;
+  --spinner-head: #ececee;
+}
+
+[data-theme="light"] {
+  --bg: #f6f6f4;
+  --surface: #ffffff;
+  --surface-hover: #f0f0ed;
+  --elevated: #ffffff;
+  --inset: #ececea;
+  --header-bg: rgba(246, 246, 244, 0.92);
+
+  --edge: #e0e0db;
+  --edge-strong: #d0d0ca;
+
+  --tx-primary: #141416;
+  --tx-secondary: #6b6b74;
+  --tx-muted: #9b9ba3;
+
+  --ring: rgba(0, 0, 0, 0.15);
+
+  --scrollbar-track: #f0f0ed;
+  --scrollbar-thumb: #c9c9c3;
+  --scrollbar-thumb-hover: #a8a8a1;
+
+  --spinner-track: #e0e0db;
+  --spinner-head: #141416;
+}
+
+/* ───────────────────────────────────────────────
+   Register tokens as Tailwind theme colors
+   ─────────────────────────────────────────────── */
+@theme {
+  --color-page: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-elevated: var(--elevated);
+  --color-inset: var(--inset);
+  --color-header: var(--header-bg);
+
+  --color-edge: var(--edge);
+  --color-edge-strong: var(--edge-strong);
+
+  --color-primary: var(--tx-primary);
+  --color-secondary: var(--tx-secondary);
+  --color-muted: var(--tx-muted);
+
+  --color-ring: var(--ring);
+
+  --color-accent: #1db954;
+  --color-accent-hover: #1ed760;
+}
+
+/* ───────────────────────────────────────────────
+   Global styles
+   ─────────────────────────────────────────────── */
 * {
   scroll-behavior: smooth;
 }
@@ -10,57 +95,63 @@ body {
     var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  background: #f6f6f4;
-  color: #111111;
+  background: var(--bg);
+  color: var(--tx-primary);
   line-height: 1.45;
   letter-spacing: -0.005em;
   min-height: 100vh;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 *:focus-visible {
-  outline: 2px solid #111111;
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
+/* ───────────────────────────────────────────────
+   Scrollbars
+   ─────────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #efefec;
+  background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c9c9c3;
-  border: 2px solid #efefec;
+  background: var(--scrollbar-thumb);
+  border: 2px solid var(--scrollbar-track);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a1;
+  background: var(--scrollbar-thumb-hover);
 }
 
-/* Use browser-native scrollbars in the Music Collections list panel */
+/* Browser-native scrollbars for collection list */
 .collections-native-scrollbar::-webkit-scrollbar {
   width: auto;
   height: auto;
 }
-
 .collections-native-scrollbar::-webkit-scrollbar-track {
   background: initial;
 }
-
 .collections-native-scrollbar::-webkit-scrollbar-thumb {
   background: initial;
   border: 0;
   border-radius: 0;
 }
-
 .collections-native-scrollbar::-webkit-scrollbar-thumb:hover {
   background: initial;
 }
 
+/* ───────────────────────────────────────────────
+   Animations
+   ─────────────────────────────────────────────── */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -97,16 +188,14 @@ body {
 .animate-fade-in {
   animation: fade-in 0.2s ease-out;
 }
-
 .animate-slide-in {
   animation: slide-in 0.2s ease-out;
 }
-
 .animate-scale-in {
   animation: scale-in 0.2s ease-out;
 }
 
-/* Landing page staggered entrance animations */
+/* Landing page staggered entrance */
 @keyframes landing-enter {
   from {
     opacity: 0;
@@ -122,23 +211,20 @@ body {
   opacity: 0;
   animation: landing-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
 }
-
 .landing-stagger-2 {
   opacity: 0;
   animation: landing-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
 }
-
 .landing-stagger-3 {
   opacity: 0;
   animation: landing-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
 }
-
 .landing-stagger-4 {
   opacity: 0;
   animation: landing-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.55s forwards;
 }
 
-/* Landing page ambient glow drift */
+/* Landing page ambient glow */
 @keyframes glow-drift-primary {
   0%,
   100% {
@@ -151,7 +237,6 @@ body {
     transform: translate(-53%, -52%);
   }
 }
-
 @keyframes glow-drift-secondary {
   0%,
   100% {
@@ -168,27 +253,17 @@ body {
 .landing-glow-primary {
   animation: glow-drift-primary 12s ease-in-out infinite;
 }
-
 .landing-glow-secondary {
   animation: glow-drift-secondary 16s ease-in-out infinite;
 }
 
-.glass {
-  background: #ffffff;
-  border: 1px solid #d8d8d3;
-}
-
-.glass-dark {
-  background: #f3f3ef;
-  border: 1px solid #d8d8d3;
-}
-
-/* Dynamic progress bar widths */
+/* ───────────────────────────────────────────────
+   Progress bar
+   ─────────────────────────────────────────────── */
 .progress-bar {
   transition: width 0.3s ease;
 }
 
-/* Progress bar width utilities */
 .w-progress-0 {
   width: 0%;
 }

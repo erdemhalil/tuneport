@@ -93,8 +93,8 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
     }
   };
 
-  const progressStep =
-    Math.round(Math.min(100, Math.max(0, job.progress)) / 5) * 5;
+  const clampedProgress = Math.min(100, Math.max(0, job.progress));
+  const progressStep = Math.round(clampedProgress / 5) * 5;
   const progressClass = `w-progress-${progressStep}`;
 
   return (
@@ -201,7 +201,7 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-sky-500">
-                {Math.round(progressStep)}%
+                {Math.round(clampedProgress)}%
               </span>
             </div>
           </div>

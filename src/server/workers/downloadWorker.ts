@@ -1,4 +1,4 @@
-import { Worker, type Job, type ConnectionOptions } from "bullmq";
+import { Worker, type Job } from "bullmq";
 import { spawn, type ChildProcessWithoutNullStreams } from "child_process";
 import { promisify } from "util";
 import { exec as execCallback } from "child_process";
@@ -8,7 +8,7 @@ import { readFile, unlink } from "fs/promises";
 import { storeDownloadedFile } from "../services/redisService";
 import type { DownloadJobData, DownloadResult } from "../queue/types";
 import { createDownloadId } from "~/utils/types";
-import { getRedisConnection } from "../lib/redis";
+import { getBullMQConnection } from "../lib/redis";
 import {
   extractFeaturedArtists,
   sanitizeTrackFilename,
@@ -248,7 +248,7 @@ export function getDownloadWorker(): Worker {
       }
     },
     {
-      connection: getRedisConnection() as unknown as ConnectionOptions,
+      connection: getBullMQConnection(),
       concurrency: 8,
     },
   );

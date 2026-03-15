@@ -1,5 +1,5 @@
-import { Queue, type ConnectionOptions } from "bullmq";
-import { getRedisConnection } from "../lib/redis";
+import { Queue } from "bullmq";
+import { getBullMQConnection } from "../lib/redis";
 
 let _queue: Queue | null = null;
 
@@ -10,7 +10,7 @@ let _queue: Queue | null = null;
  */
 export function getDownloadQueue(): Queue {
   _queue ??= new Queue("youtube-downloads", {
-    connection: getRedisConnection() as unknown as ConnectionOptions,
+    connection: getBullMQConnection(),
     defaultJobOptions: {
       removeOnComplete: 50,
       removeOnFail: 20,

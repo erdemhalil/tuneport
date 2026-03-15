@@ -33,9 +33,11 @@ export function YouTubeMp3() {
     (mode === "url" && resolveResult.isLoading);
 
   const errorMessage =
-    (mode === "search" && searchResult.error?.message) ??
-    (mode === "url" && resolveResult.error?.message) ??
-    null;
+    mode === "search"
+      ? (searchResult.error?.message ?? null)
+      : mode === "url"
+        ? (resolveResult.error?.message ?? null)
+        : null;
 
   const matches =
     mode === "search"

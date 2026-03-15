@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { TRPCError } from "@trpc/server";
+import type { TRPCError } from "@trpc/server";
 
 vi.mock("~/server/queue/downloadQueue", () => ({
   getDownloadQueue: vi.fn(),

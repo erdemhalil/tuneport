@@ -1,4 +1,4 @@
-import { Worker, type Job } from "bullmq";
+import { Worker, type Job, type ConnectionOptions } from "bullmq";
 import { spawn, type ChildProcessWithoutNullStreams } from "child_process";
 import { promisify } from "util";
 import { exec as execCallback } from "child_process";
@@ -248,7 +248,7 @@ export function getDownloadWorker(): Worker {
       }
     },
     {
-      connection: getRedisConnection(),
+      connection: getRedisConnection() as unknown as ConnectionOptions,
       concurrency: 8,
     },
   );

@@ -49,11 +49,7 @@ export function TrackItem({
         <div className="flex items-center space-x-2">
           <h4
             className={`truncate text-sm font-medium transition-colors ${
-              isCurrent
-                ? "text-primary font-semibold"
-                : isSelected
-                  ? "text-primary"
-                  : "text-primary"
+              isCurrent ? "text-accent font-semibold" : "text-primary"
             }`}
           >
             {track.name}
@@ -81,7 +77,7 @@ export function TrackItem({
       </div>
 
       {isCurrent && (
-        <div className="bg-primary text-page absolute top-1/2 right-4 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full">
+        <div className="bg-accent shadow-accent/25 absolute top-1/2 right-4 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-white shadow-md">
           <svg
             className="h-4 w-4"
             fill="none"

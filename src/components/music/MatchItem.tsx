@@ -21,7 +21,7 @@ export function MatchItem({
     if (confidence >= 85) return "text-emerald-500 bg-emerald-500/15";
     if (confidence >= 70) return "text-lime-500 bg-lime-500/15";
     if (confidence >= 55) return "text-amber-500 bg-amber-500/15";
-    return "text-rose-500 bg-rose-500/15";
+    return "text-amber-400 bg-amber-400/15";
   };
 
   const baseClasses =
@@ -89,7 +89,7 @@ export function MatchItem({
             e.stopPropagation();
             onPreview();
           }}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-500/20 bg-red-500/10 text-red-500 transition-colors hover:bg-red-500/20 hover:text-red-400 focus:ring-2 focus:ring-red-500/30 focus:outline-none"
+          className="border-edge bg-inset text-secondary hover:bg-surface-hover hover:text-primary focus:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors focus:ring-2 focus:outline-none"
           title="Preview on YouTube"
           aria-label="Open this track preview on YouTube"
         >

@@ -14,7 +14,7 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
       case "completed":
         return "text-emerald-500";
       case "failed":
-        return "text-rose-500";
+        return "text-rose-400";
       case "active":
         return "text-sky-500";
       case "waiting":
@@ -44,9 +44,9 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
         );
       case "failed":
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-rose-500/20 bg-rose-500/15">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-rose-400/20 bg-rose-400/15">
             <svg
-              className="h-3 w-3 text-rose-500"
+              className="h-3 w-3 text-rose-400"
               fill="currentColor"
               viewBox="0 0 20 20"
             >

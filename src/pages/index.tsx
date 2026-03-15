@@ -7,10 +7,12 @@ import { TrackMatcher } from "~/components/music/TrackMatcher";
 import { YouTubeMp3 } from "~/components/music/YouTubeMp3";
 import { LandingPage } from "~/components/LandingPage";
 import { useSpotifyDashboard } from "~/hooks/useSpotifyDashboard";
+import { useTheme } from "~/contexts/ThemeContext";
 
 export default function Home() {
   const { data: sessionData } = useSession();
   const dashboard = useSpotifyDashboard(!!sessionData?.user);
+  const { theme, toggle } = useTheme();
   const selectedCollection =
     dashboard.collectionsData?.collections.find(
       (c) => c.id === dashboard.selectedCollectionId,
@@ -30,63 +32,103 @@ export default function Home() {
       </Head>
 
       {sessionData?.user ? (
-        <div className="min-h-screen bg-[#f6f6f4] text-zinc-900">
+        <div className="bg-page text-primary min-h-screen">
           {/* Header */}
-          <header className="sticky top-0 z-50 border-b border-zinc-300 bg-[#f6f6f4]/95">
+          <header className="border-edge bg-header sticky top-0 z-50 border-b backdrop-blur-md">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
               <div className="flex h-14 items-center gap-3">
                 <div className="flex items-center space-x-3">
-                  <div className="h-6 w-1 rounded-full bg-zinc-900"></div>
-                  <h1 className="text-lg font-semibold tracking-tight text-zinc-950">
+                  <div className="bg-primary h-6 w-1 rounded-full"></div>
+                  <h1 className="text-primary text-lg font-semibold tracking-tight">
                     Tuneport
                   </h1>
                 </div>
 
-                <div className="mx-auto flex items-center gap-2 rounded-lg border border-zinc-300 bg-white p-1">
+                {/* Tab switcher */}
+                <div className="border-edge bg-inset mx-auto flex items-center gap-1 rounded-lg border p-1">
                   <button
                     onClick={() => dashboard.setActiveTab("spotify")}
-                    className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+                    className={`cursor-pointer rounded-md px-3 py-1 text-sm font-medium transition-colors ${
                       dashboard.activeTab === "spotify"
-                        ? "bg-zinc-900 text-white"
-                        : "text-zinc-700 hover:bg-zinc-100"
+                        ? "bg-surface text-primary shadow-sm"
+                        : "text-secondary hover:text-primary"
                     }`}
                   >
                     Spotify Library
                   </button>
                   <button
                     onClick={() => dashboard.setActiveTab("youtube")}
-                    className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+                    className={`cursor-pointer rounded-md px-3 py-1 text-sm font-medium transition-colors ${
                       dashboard.activeTab === "youtube"
-                        ? "bg-zinc-900 text-white"
-                        : "text-zinc-700 hover:bg-zinc-100"
+                        ? "bg-surface text-primary shadow-sm"
+                        : "text-secondary hover:text-primary"
                     }`}
                   >
                     YouTube to MP3
                   </button>
                 </div>
 
-                <div className="flex items-center space-x-4">
+                {/* Right side: theme toggle + profile + sign out */}
+                <div className="flex items-center space-x-3">
+                  {/* Theme toggle */}
+                  <button
+                    onClick={toggle}
+                    className="border-edge bg-surface text-secondary hover:bg-surface-hover hover:text-primary focus:ring-ring inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border transition-colors focus:ring-2 focus:outline-none"
+                    title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                    aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                  >
+                    {theme === "dark" ? (
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                        />
+                      </svg>
+                    )}
+                  </button>
+
                   <div className="flex items-center space-x-3">
                     {sessionData.user.image && (
                       <div>
                         <Image
                           src={sessionData.user.image}
                           alt="Profile"
-                          width={40}
-                          height={40}
-                          className="rounded-full border border-zinc-300"
+                          width={36}
+                          height={36}
+                          className="border-edge rounded-full border"
                         />
                       </div>
                     )}
                     <div className="hidden sm:block">
-                      <span className="text-sm font-medium text-zinc-900">
+                      <span className="text-primary text-sm font-medium">
                         {sessionData.user.name}
                       </span>
                     </div>
                   </div>
                   <button
                     onClick={() => void signOut()}
-                    className="rounded-md border border-zinc-300 bg-white px-2.5 py-1 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
+                    className="border-edge bg-surface text-secondary hover:bg-surface-hover hover:text-primary focus:ring-ring cursor-pointer rounded-md border px-2.5 py-1 text-sm font-medium transition-colors focus:ring-2 focus:outline-none"
                   >
                     Sign out
                   </button>
@@ -98,7 +140,6 @@ export default function Home() {
           {/* Main Content */}
           <main className="relative mx-auto h-[calc(100vh-3.5rem)] max-w-7xl overflow-hidden px-6 py-4 lg:px-8">
             <div className="flex h-full min-h-0 flex-col gap-4">
-
               {/* Selected Collection Tracks */}
               {dashboard.activeTab === "spotify" &&
                 dashboard.selectedCollectionId &&
@@ -106,17 +147,17 @@ export default function Home() {
                   <section className="animate-fade-in flex h-full min-h-0 flex-col gap-4">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-baseline gap-4">
-                        <h2 className="text-2xl font-semibold tracking-tight text-zinc-950">
+                        <h2 className="text-primary text-2xl font-semibold tracking-tight">
                           {selectedCollection?.name ?? "Collection"}
                         </h2>
-                        <span className="text-sm text-zinc-500">
+                        <span className="text-muted text-sm">
                           {dashboard.totalTracks}{" "}
                           {dashboard.totalTracks === 1 ? "track" : "tracks"}
                         </span>
                       </div>
                       <button
                         onClick={() => dashboard.handleCollectionSelect(null)}
-                        className="inline-flex items-center rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
+                        className="border-edge bg-surface text-secondary hover:bg-surface-hover hover:text-primary focus:ring-ring inline-flex cursor-pointer items-center rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus:ring-2 focus:outline-none"
                       >
                         <svg
                           className="mr-2 h-4 w-4"
@@ -149,7 +190,7 @@ export default function Home() {
                         />
                       </div>
                     ) : (
-                      <div className="rounded-xl border border-zinc-300 bg-white p-6 text-sm text-zinc-700">
+                      <div className="border-edge bg-surface text-secondary rounded-xl border p-6 text-sm">
                         The selected collection is no longer available. Please
                         go back and choose another collection.
                       </div>

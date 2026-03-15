@@ -17,12 +17,12 @@ export function TrackItem({
   onClick,
 }: TrackItemProps) {
   const baseClasses =
-    "group relative flex cursor-pointer items-center space-x-4 rounded-xl border border-zinc-300 bg-white p-4 transition-colors";
+    "group relative flex cursor-pointer items-center space-x-4 rounded-xl border p-4 transition-colors";
   const stateClasses = isCurrent
-    ? "border-zinc-900 bg-zinc-100"
+    ? "border-edge-strong bg-surface-hover"
     : isSelected
-      ? "border-zinc-500 bg-zinc-50"
-      : "hover:bg-zinc-50";
+      ? "border-edge-strong bg-surface"
+      : "border-edge bg-surface hover:bg-surface-hover";
 
   return (
     <div className={`${baseClasses} ${stateClasses}`} onClick={onClick}>
@@ -33,7 +33,7 @@ export function TrackItem({
             alt={track.album.name}
             width={56}
             height={56}
-            className={`h-14 w-14 rounded-lg border border-zinc-300 object-cover ${isCurrent ? "border-zinc-900" : ""}`}
+            className={`h-14 w-14 rounded-lg border object-cover ${isCurrent ? "border-edge-strong" : "border-edge"}`}
           />
         )}
         {isSelected && (
@@ -50,16 +50,16 @@ export function TrackItem({
           <h4
             className={`truncate text-sm font-medium transition-colors ${
               isCurrent
-                ? "font-semibold text-zinc-900"
+                ? "text-primary font-semibold"
                 : isSelected
-                  ? "text-zinc-900"
-                  : "text-zinc-800"
+                  ? "text-primary"
+                  : "text-primary"
             }`}
           >
             {track.name}
           </h4>
           {track.explicit && (
-            <span className="inline-flex items-center rounded border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 text-xs font-medium text-zinc-600">
+            <span className="border-edge bg-inset text-secondary inline-flex items-center rounded border px-1.5 py-0.5 text-xs font-medium">
               E
             </span>
           )}
@@ -67,31 +67,23 @@ export function TrackItem({
         <p
           className={`truncate text-xs transition-colors ${
             isCurrent
-              ? "text-zinc-700"
+              ? "text-secondary"
               : isSelected
-                ? "text-zinc-600"
-                : "text-zinc-500"
+                ? "text-secondary"
+                : "text-muted"
           }`}
         >
           {track.artists.join(", ")} • {track.album.name}
         </p>
-        <p
-          className={`text-xs font-medium transition-colors ${
-            isCurrent
-              ? "text-zinc-700"
-              : isSelected
-                ? "text-zinc-500"
-                : "text-zinc-500"
-          }`}
-        >
+        <p className="text-muted text-xs font-medium transition-colors">
           {formatDurationMs(track.duration_ms)}
         </p>
       </div>
 
       {isCurrent && (
-        <div className="absolute top-1/2 right-4 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-900 bg-zinc-900">
+        <div className="bg-primary text-page absolute top-1/2 right-4 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full">
           <svg
-            className="h-4 w-4 text-white"
+            className="h-4 w-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

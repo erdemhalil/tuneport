@@ -26,20 +26,23 @@ export function CollectionList({
     return (
       <div className="animate-fade-in space-y-8">
         <div className="space-y-3">
-          <h2 className="text-3xl font-semibold tracking-tight text-zinc-900">
+          <h2 className="text-primary text-3xl font-semibold tracking-tight">
             Your Music Collections
           </h2>
-          <p className="text-zinc-500">Organizing your musical collections</p>
+          <p className="text-secondary">Organizing your musical collections</p>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <SkeletonRepeater count={8}>
             {(i) => (
-              <div key={i} className="animate-pulse rounded-xl border border-zinc-300 bg-white p-6">
-                <div className="mb-4 aspect-square w-full rounded-lg bg-zinc-100"></div>
+              <div
+                key={i}
+                className="border-edge bg-surface animate-pulse rounded-xl border p-6"
+              >
+                <div className="bg-inset mb-4 aspect-square w-full rounded-lg"></div>
                 <div className="space-y-3">
-                  <div className="h-5 w-3/4 rounded bg-zinc-100"></div>
-                  <div className="h-4 w-1/2 rounded bg-zinc-100"></div>
-                  <div className="h-3 w-2/3 rounded bg-zinc-100"></div>
+                  <div className="bg-inset h-5 w-3/4 rounded"></div>
+                  <div className="bg-inset h-4 w-1/2 rounded"></div>
+                  <div className="bg-inset h-3 w-2/3 rounded"></div>
                 </div>
               </div>
             )}
@@ -53,9 +56,9 @@ export function CollectionList({
     return (
       <div className="animate-fade-in py-20 text-center">
         <div className="space-y-6">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-zinc-300 bg-white">
+          <div className="border-edge bg-surface mx-auto flex h-16 w-16 items-center justify-center rounded-full border">
             <svg
-              className="h-8 w-8 text-zinc-500"
+              className="text-muted h-8 w-8"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -67,10 +70,10 @@ export function CollectionList({
             </svg>
           </div>
           <div className="space-y-2">
-            <h2 className="text-3xl font-semibold tracking-tight text-zinc-900">
+            <h2 className="text-primary text-3xl font-semibold tracking-tight">
               Your Music Collections
             </h2>
-            <p className="mx-auto max-w-md text-zinc-500">
+            <p className="text-secondary mx-auto max-w-md">
               No music collections found in your Spotify library. Create some
               playlists in Spotify to see them here.
             </p>
@@ -83,10 +86,10 @@ export function CollectionList({
   return (
     <div className="animate-fade-in space-y-8">
       <div className="space-y-3">
-        <h2 className="text-3xl font-semibold tracking-tight text-zinc-900">
+        <h2 className="text-primary text-3xl font-semibold tracking-tight">
           Your Music Collections
         </h2>
-        <p className="text-zinc-500">
+        <p className="text-secondary">
           {collections.length} collection{collections.length === 1 ? "" : "s"} •
           Curated by you
         </p>

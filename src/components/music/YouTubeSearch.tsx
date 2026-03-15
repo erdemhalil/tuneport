@@ -32,7 +32,7 @@ export function YouTubeSearch({
   };
 
   return (
-    <div className="h-full min-h-0 rounded-xl border border-zinc-300 bg-white p-4">
+    <div className="border-edge bg-surface h-full min-h-0 rounded-xl border p-4">
       {matches.length > 0 ? (
         <div className="max-h-full space-y-2 overflow-y-auto pr-1">
           {matches.map((match) => (
@@ -46,10 +46,10 @@ export function YouTubeSearch({
           ))}
         </div>
       ) : (
-        <div className="py-8 text-center text-zinc-500">
+        <div className="text-muted py-8 text-center">
           {isLoading ? (
             <div className="flex items-center justify-center space-x-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-900"></div>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--spinner-track)] border-t-[var(--spinner-head)]"></div>
               <span>Searching YouTube...</span>
             </div>
           ) : (

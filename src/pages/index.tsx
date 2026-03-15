@@ -160,7 +160,7 @@ export default function Home() {
               {/* Collections List */}
               {dashboard.activeTab === "spotify" &&
                 !dashboard.selectedCollectionId && (
-                  <section className="animate-fade-in h-full min-h-0 overflow-y-auto pr-1">
+                  <section className="collections-native-scrollbar animate-fade-in h-full min-h-0 overflow-y-auto pr-1">
                     <CollectionList
                       collections={dashboard.collectionsData?.collections ?? []}
                       onCollectionClick={dashboard.handleCollectionSelect}

@@ -17,6 +17,7 @@ export const youtubeRouter = createTRPCRouter({
         artistName: z.string(),
         albumName: z.string().optional(),
         durationMs: z.number(),
+        maxResults: z.number().min(1).max(15).optional(),
       }),
     )
     .query(async ({ ctx, input }) => {

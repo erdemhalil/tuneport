@@ -14,27 +14,27 @@ export function DownloadActionBar({
   if (selectedCount === 0) return null;
 
   return (
-    <div className="glass animate-slide-in rounded-2xl border border-white/20 p-6 shadow-2xl backdrop-blur-xl">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="animate-slide-in sticky bottom-0 z-20 rounded-xl border border-zinc-300 bg-white p-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1">
-          <div className="text-lg font-medium text-white">
+          <div className="text-sm font-semibold text-zinc-900">
             {selectedCount} {selectedCount === 1 ? "track" : "tracks"} ready
           </div>
-          <div className="text-sm text-gray-400">
+          <div className="text-xs text-zinc-500">
             Selected and ready for download
           </div>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           <button
             onClick={onClear}
-            className="rounded-xl border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-gray-300 backdrop-blur-sm transition-all duration-200 hover:border-white/30 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
+            className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
           >
             Clear All
           </button>
           <button
             onClick={onDownload}
             disabled={isPending}
-            className="flex items-center space-x-2 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:from-purple-600 hover:to-blue-600 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center space-x-2 rounded-md border border-zinc-900 bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus:ring-2 focus:ring-zinc-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isPending ? (
               <>

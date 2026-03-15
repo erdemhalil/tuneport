@@ -1,7 +1,6 @@
 import Image from "next/image";
 import type { DownloadJobStatus } from "~/utils/types";
 import type { DownloadJob } from "~/utils/types";
-import { formatFileSize } from "~/utils/format";
 
 interface JobItemProps {
   job: DownloadJob;
@@ -13,14 +12,15 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
   const getStatusColor = (status: DownloadJobStatus) => {
     switch (status) {
       case "completed":
-        return "text-emerald-400";
+        return "text-emerald-700";
       case "failed":
-        return "text-red-400";
+        return "text-rose-700";
       case "active":
+        return "text-sky-700";
       case "waiting":
-        return "text-blue-400";
+        return "text-amber-700";
       default:
-        return "text-neutral-400";
+        return "text-zinc-500";
     }
   };
 
@@ -28,9 +28,9 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
     switch (status) {
       case "completed":
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-emerald-200 bg-emerald-100">
             <svg
-              className="h-3 w-3 text-emerald-400"
+              className="h-3 w-3 text-emerald-700"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -44,9 +44,9 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
         );
       case "failed":
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500/20">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-rose-200 bg-rose-100">
             <svg
-              className="h-3 w-3 text-red-400"
+              className="h-3 w-3 text-rose-700"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -60,9 +60,9 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
         );
       case "active":
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-sky-200 bg-sky-100">
             <svg
-              className="h-3 w-3 animate-spin text-blue-400"
+              className="h-3 w-3 animate-spin text-sky-700"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -76,9 +76,9 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
         );
       default:
         return (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-500/20">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full border border-amber-200 bg-amber-100">
             <svg
-              className="h-3 w-3 text-neutral-400"
+              className="h-3 w-3 text-amber-700"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -93,31 +93,32 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
     }
   };
 
-  const progressWidth = `${Math.min(100, Math.max(0, job.progress))}%`;
+  const progressStep = Math.round(Math.min(100, Math.max(0, job.progress)) / 5) * 5;
+  const progressClass = `w-progress-${progressStep}`;
 
   return (
-    <div className="border-b border-white/10 last:border-b-0">
-      <div className="space-y-4 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex min-w-0 flex-1 items-center space-x-4">
-            <div className="flex-shrink-0">{getStatusIcon(job.status)}</div>
+    <div className="border-b border-zinc-300 bg-zinc-50/70 last:border-b-0">
+      <div className="space-y-3 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-1 items-center space-x-3">
+            <div className="shrink-0">{getStatusIcon(job.status)}</div>
             {/* Spotify Artwork */}
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               {job.artwork ? (
                 <Image
                   src={job.artwork}
                   alt={`${job.trackName} album art`}
                   width={48}
                   height={48}
-                  className="h-12 w-12 rounded-lg border border-white/20 object-cover shadow-sm"
+                  className="h-12 w-12 rounded-lg border border-zinc-300 object-cover"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
                   }}
                 />
               ) : (
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-zinc-300 bg-zinc-100">
                   <svg
-                    className="h-6 w-6 text-neutral-400"
+                    className="h-6 w-6 text-zinc-500"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -133,23 +134,23 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <h4 className="truncate text-base font-medium text-white">
+              <h4 className="truncate text-sm font-semibold text-zinc-900">
                 {job.trackName}
               </h4>
-              <p className="mt-1 truncate text-sm text-neutral-300">
+              <p className="mt-0.5 truncate text-xs text-zinc-600">
                 {job.allArtists && job.allArtists.length > 0
                   ? job.allArtists.join(", ")
                   : job.artistName}
               </p>
             </div>
           </div>
-          <div className="flex flex-shrink-0 items-center space-x-2">
+          <div className="flex shrink-0 items-center gap-2 self-start">
             {job.status === "completed" &&
               job.result?.downloadId &&
               onDownload && (
                 <button
                   onClick={onDownload}
-                  className="inline-flex items-center justify-center rounded-xl bg-purple-500 p-2.5 text-white shadow-sm transition-all duration-200 hover:bg-purple-400 hover:shadow-md"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-zinc-900 bg-zinc-900 text-white transition-colors hover:bg-zinc-800"
                   title="Download file"
                 >
                   <svg
@@ -169,7 +170,7 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
               )}
             <button
               onClick={onRemove}
-              className="inline-flex items-center justify-center rounded-xl bg-white/10 p-2.5 text-neutral-300 transition-all duration-200 hover:bg-red-500/20 hover:text-red-400"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-zinc-300 bg-zinc-100 text-zinc-700 transition-colors hover:bg-zinc-200 hover:text-zinc-900"
               title="Remove download"
             >
               <svg
@@ -191,31 +192,28 @@ export function JobItem({ job, onRemove, onDownload }: JobItemProps) {
 
         {/* Progress Bar */}
         {job.status === "active" && (
-          <div className="space-y-3">
-            <div className="relative h-3 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="space-y-2">
+            <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
               <div
-                className="absolute top-0 left-0 h-3 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-300"
-                style={{ width: progressWidth }}
+                className={`absolute top-0 left-0 h-2.5 rounded-full bg-sky-600 transition-all duration-300 ${progressClass}`}
               />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-purple-400">
-                {Math.round(job.progress)}%
+              <span className="text-xs font-semibold text-sky-700">
+                {Math.round(progressStep)}%
               </span>
             </div>
           </div>
         )}
 
-        {/* Status and File Size */}
-        <div className="flex items-center justify-between">
-          <span className={`text-sm font-medium ${getStatusColor(job.status)}`}>
-            {job.status === "completed" && job.result?.fileSize !== undefined
-              ? formatFileSize(job.result.fileSize)
-              : job.status === "failed"
-                ? (job.failedReason ?? job.error ?? "Error occurred")
-                : ""}
-          </span>
-        </div>
+        {/* Failure message */}
+        {job.status === "failed" && (
+          <div className="flex items-center justify-between">
+            <span className={`text-xs font-medium ${getStatusColor(job.status)}`}>
+              {job.failedReason ?? job.error ?? "Error occurred"}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

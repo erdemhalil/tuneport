@@ -54,30 +54,29 @@ export function DownloadProgressWidget() {
       <div className="animate-scale-in fixed right-6 bottom-6 z-50">
         <button
           onClick={() => setIsMinimized(false)}
-          className="glass group flex w-80 items-center justify-between rounded-2xl border border-white/20 px-6 py-4 shadow-lg transition-all duration-200 hover:border-purple-400/40 hover:shadow-xl"
+          className="group flex w-72 items-center justify-between rounded-xl border border-zinc-400 bg-zinc-100 px-4 py-2.5 transition-colors hover:bg-zinc-200"
+          aria-label="Expand downloads panel"
+          title="Expand downloads"
         >
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <div className="relative">
-              <div className="h-4 w-4 animate-pulse rounded-full bg-blue-400"></div>
+              <div className="h-3 w-3 rounded-full bg-sky-600"></div>
               {activeJobs.length > 0 && (
-                <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-emerald-400"></div>
+                <div className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border border-zinc-100 bg-emerald-500"></div>
               )}
             </div>
-            <div className="space-y-0.5">
-              <div className="text-sm font-medium text-white">Downloads</div>
-              <div className="text-xs text-neutral-300">
+            <div className="flex min-w-0 flex-col items-start justify-center leading-tight">
+              <div className="text-sm font-semibold text-zinc-900">Downloads</div>
+              <div className="text-xs text-zinc-500">
                 {activeJobs.length > 0
                   ? `${activeJobs.length} active`
                   : `${jobs.length} total`}
               </div>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
-            <span className="rounded-full bg-purple-500/20 px-2 py-1 text-xs font-medium text-purple-300">
-              Expand
-            </span>
+          <div className="flex items-center">
             <svg
-              className="h-5 w-5 text-purple-400 transition-colors group-hover:text-purple-300"
+              className="h-6 w-6 text-zinc-600 transition-colors group-hover:text-zinc-900"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -86,7 +85,7 @@ export function DownloadProgressWidget() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M5 10l7-7m0 0l7 7m-7-7v18"
+                d="M7 14l5-5 5 5"
               />
             </svg>
           </div>
@@ -96,15 +95,15 @@ export function DownloadProgressWidget() {
   }
 
   return (
-    <div className="animate-scale-in fixed right-6 bottom-6 z-50 w-96">
-      <div className="glass overflow-hidden rounded-3xl border border-white/20 shadow-2xl">
+    <div className="animate-scale-in fixed right-6 bottom-6 z-50 w-88">
+      <div className="overflow-hidden rounded-xl border border-zinc-400 bg-zinc-100 shadow-sm">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/20 bg-white/10 px-6 py-5">
+        <div className="flex items-center justify-between border-b border-zinc-300 bg-zinc-200 px-5 py-4">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-600/30 ring-1 ring-purple-500/20">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-300 bg-zinc-50">
                 <svg
-                  className="h-6 w-6 text-purple-300"
+                  className="h-5 w-5 text-sky-700"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -118,28 +117,28 @@ export function DownloadProgressWidget() {
                 </svg>
               </div>
               {activeJobs.length > 0 && (
-                <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-white/20 bg-emerald-400"></div>
+                <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-zinc-200 bg-emerald-500"></div>
               )}
             </div>
             <div className="space-y-1">
-              <h3 className="text-lg font-semibold text-white">Downloads</h3>
-              <div className="text-sm text-neutral-300">
+              <h3 className="text-base font-semibold text-zinc-900">Downloads</h3>
+              <div className="text-sm text-zinc-500">
                 {[
                   activeJobs.length > 0 && (
-                    <span key="active" className="font-medium text-blue-400">
+                    <span key="active" className="font-medium text-sky-700">
                       {activeJobs.length} active
                     </span>
                   ),
                   completedJobs.length > 0 && (
                     <span
                       key="completed"
-                      className="font-medium text-emerald-400"
+                      className="font-medium text-emerald-700"
                     >
                       {completedJobs.length} completed
                     </span>
                   ),
                   failedJobs.length > 0 && (
-                    <span key="failed" className="font-medium text-red-400">
+                    <span key="failed" className="font-medium text-rose-700">
                       {failedJobs.length} failed
                     </span>
                   ),
@@ -155,7 +154,7 @@ export function DownloadProgressWidget() {
             {completedJobs.length > 0 && (
               <button
                 onClick={handleClearCompleted}
-                className="inline-flex items-center justify-center rounded-xl bg-white/10 p-2.5 text-neutral-300 transition-all duration-200 hover:bg-white/20 hover:text-white"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-300 bg-zinc-50 text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
                 title="Clear completed downloads"
               >
                 <svg
@@ -175,7 +174,7 @@ export function DownloadProgressWidget() {
             )}
             <button
               onClick={() => setIsMinimized(true)}
-              className="inline-flex items-center justify-center rounded-xl bg-white/10 p-2.5 text-neutral-300 transition-all duration-200 hover:bg-white/20 hover:text-white"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-300 bg-zinc-50 text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
               title="Minimize downloads"
             >
               <svg
@@ -197,7 +196,7 @@ export function DownloadProgressWidget() {
 
         {/* Jobs List */}
         <div
-          className={`overflow-y-auto ${isExpanded ? "max-h-none" : "max-h-[500px]"}`}
+          className={`overflow-y-auto ${isExpanded ? "max-h-none" : "max-h-125"}`}
         >
           {jobs.map((job) => (
             <JobItem
@@ -221,12 +220,27 @@ export function DownloadProgressWidget() {
 
         {/* Footer */}
         {jobs.length > 3 && (
-          <div className="border-t border-white/20 bg-white/5 px-6 py-3">
+          <div className="border-t border-zinc-300 bg-zinc-200 px-5 py-2.5">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="w-full text-center text-xs font-medium text-neutral-300 transition-colors hover:text-white"
+              className="group flex w-full items-center justify-center gap-2 text-xs font-medium text-zinc-700 transition-colors hover:text-zinc-900"
+              title={isExpanded ? "Collapse downloads" : "Expand downloads"}
+              aria-label={isExpanded ? "Collapse downloads" : "Expand downloads"}
             >
-              {isExpanded ? "Show less" : `Show all ${jobs.length} downloads`}
+              <span>{isExpanded ? "Show less" : `Show all ${jobs.length} downloads`}</span>
+              <svg
+                className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : "rotate-0"}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
             </button>
           </div>
         )}

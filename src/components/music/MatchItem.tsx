@@ -18,58 +18,59 @@ export function MatchItem({
   onPreview,
 }: MatchItemProps) {
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 80) return "text-emerald-400 bg-emerald-500/20";
-    if (confidence >= 60) return "text-yellow-400 bg-yellow-500/20";
-    return "text-red-400 bg-red-500/20";
+    if (confidence >= 85) return "text-emerald-900 bg-emerald-100";
+    if (confidence >= 70) return "text-lime-900 bg-lime-100";
+    if (confidence >= 55) return "text-amber-900 bg-amber-100";
+    return "text-rose-900 bg-rose-100";
   };
 
   const baseClasses =
-    "flex cursor-pointer items-center space-x-3 rounded-xl border p-3 transition-all duration-200";
+    "flex cursor-pointer items-center space-x-3 rounded-lg border p-3 transition-colors";
   const selectedClasses = isSelected
-    ? "border-purple-400 bg-gradient-to-r from-purple-500/40 to-blue-500/30 ring-2 ring-purple-400 ring-offset-2 ring-offset-slate-900 shadow-xl scale-[1.02]"
-    : "border-white/20 bg-white/5 hover:border-white/30 hover:bg-white/10";
+    ? "border-zinc-900 bg-zinc-100"
+    : "border-zinc-300 bg-white hover:bg-zinc-50";
 
   return (
     <div className={`${baseClasses} ${selectedClasses}`} onClick={onSelect}>
       <div
-        className={`${isSelected ? "relative h-20 w-20 flex-shrink-0" : "relative h-16 w-16 flex-shrink-0"}`}
+        className={`${isSelected ? "relative h-20 w-20 shrink-0" : "relative h-16 w-16 shrink-0"}`}
       >
         <Image
           src={match.thumbnail}
           alt={match.title}
           fill
-          className={`rounded-lg object-cover transition-all duration-200 ${isSelected ? "shadow-lg ring-2 ring-purple-300" : ""}`}
+          className={`rounded-lg border object-cover ${isSelected ? "border-zinc-900" : "border-zinc-300"}`}
         />
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center space-x-2">
           <h4
-            className={`truncate text-sm font-medium transition-colors ${isSelected ? "font-semibold text-white" : "text-white"}`}
+            className={`truncate text-sm font-medium transition-colors ${isSelected ? "font-semibold text-zinc-900" : "text-zinc-900"}`}
           >
             {match.title}
           </h4>
           {match.explicit && (
-            <span className="inline-flex items-center rounded bg-red-500/20 px-1.5 py-0.5 text-xs font-medium text-red-400">
+            <span className="inline-flex items-center rounded border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 text-xs font-medium text-zinc-600">
               E
             </span>
           )}
           {match.clean && (
-            <span className="inline-flex items-center rounded bg-blue-500/20 px-1.5 py-0.5 text-xs font-medium text-blue-400">
+            <span className="inline-flex items-center rounded border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 text-xs font-medium text-zinc-600">
               C
             </span>
           )}
         </div>
-        <p className="truncate text-xs text-gray-400">{match.channel}</p>
+        <p className="truncate text-xs text-zinc-500">{match.channel}</p>
         <div className="mt-1 flex items-center space-x-2">
           <span
-            className={`text-xs ${isSelected ? "text-purple-200" : "text-gray-500"}`}
+            className={`text-xs ${isSelected ? "text-zinc-700" : "text-zinc-500"}`}
           >
             {formatDuration(match.duration)}
           </span>
           {match.viewCount != null && (
             <span
-              className={`text-xs ${isSelected ? "text-purple-200" : "text-gray-500"}`}
+              className={`text-xs ${isSelected ? "text-zinc-700" : "text-zinc-500"}`}
             >
               {formatCompactNumber(match.viewCount)} views
             </span>
@@ -88,15 +89,16 @@ export function MatchItem({
             e.stopPropagation();
             onPreview();
           }}
-          className="p-1 text-gray-400 transition-colors hover:text-white"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-700 transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-800 focus:ring-2 focus:ring-red-300 focus:outline-none"
           title="Preview on YouTube"
+          aria-label="Open this track preview on YouTube"
         >
-          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="h-4.5 w-4.5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z" />
           </svg>
         </button>
 
-        {isSelected && <CheckmarkBadge color="purple" size="sm" />}
+        {isSelected && <CheckmarkBadge color="emerald" size="sm" />}
       </div>
     </div>
   );

@@ -34,7 +34,7 @@ export function Pagination({
   return (
     <div className={`flex items-center justify-between ${className}`}>
       {/* Page info */}
-      <div className="text-sm text-gray-400">
+      <div className="text-sm text-zinc-500">
         Showing {startItem} to {endItem} of {totalItems} items
       </div>
 
@@ -43,7 +43,7 @@ export function Pagination({
         <button
           onClick={handlePrevious}
           disabled={currentPage <= 1}
-          className="flex items-center space-x-2 rounded-xl px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center space-x-2 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus:ring-2 focus:ring-zinc-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
           <svg
             className="h-4 w-4"
@@ -62,8 +62,8 @@ export function Pagination({
         </button>
 
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-400">Page</span>
-          <span className="rounded-lg bg-white/10 px-3 py-1 text-sm font-medium text-white">
+          <span className="text-sm text-zinc-500">Page</span>
+          <span className="rounded-md border border-zinc-300 bg-white px-3 py-1 text-sm font-medium text-zinc-800">
             {currentPage} of {totalPages}
           </span>
         </div>
@@ -71,7 +71,7 @@ export function Pagination({
         <button
           onClick={handleNext}
           disabled={currentPage >= totalPages}
-          className="flex items-center space-x-2 rounded-xl px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center space-x-2 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus:ring-2 focus:ring-zinc-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
           <span>Next</span>
           <svg

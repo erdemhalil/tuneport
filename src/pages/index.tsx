@@ -6,7 +6,6 @@ import { CollectionList } from "~/components/music/CollectionList";
 import { TrackMatcher } from "~/components/music/TrackMatcher";
 import { YouTubeMp3 } from "~/components/music/YouTubeMp3";
 import { LandingPage } from "~/components/LandingPage";
-import { AnimatedBackground } from "~/components/ui/AnimatedBackground";
 import { useSpotifyDashboard } from "~/hooks/useSpotifyDashboard";
 
 export default function Home() {
@@ -31,44 +30,63 @@ export default function Home() {
       </Head>
 
       {sessionData?.user ? (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-          <AnimatedBackground variant="app" />
-
+        <div className="min-h-screen bg-[#f6f6f4] text-zinc-900">
           {/* Header */}
-          <header className="glass sticky top-0 z-50 border-b border-white/10 backdrop-blur-xl">
+          <header className="sticky top-0 z-50 border-b border-zinc-300 bg-[#f6f6f4]/95">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
-              <div className="flex h-20 items-center justify-between">
+              <div className="flex h-14 items-center gap-3">
                 <div className="flex items-center space-x-3">
-                  <div className="h-8 w-2 rounded-full bg-gradient-to-b from-purple-500 to-blue-500"></div>
-                  <h1 className="text-2xl font-light tracking-tight text-white">
+                  <div className="h-6 w-1 rounded-full bg-zinc-900"></div>
+                  <h1 className="text-lg font-semibold tracking-tight text-zinc-950">
                     Tuneport
                   </h1>
                 </div>
 
-                <div className="flex items-center space-x-6">
+                <div className="mx-auto flex items-center gap-2 rounded-lg border border-zinc-300 bg-white p-1">
+                  <button
+                    onClick={() => dashboard.setActiveTab("spotify")}
+                    className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+                      dashboard.activeTab === "spotify"
+                        ? "bg-zinc-900 text-white"
+                        : "text-zinc-700 hover:bg-zinc-100"
+                    }`}
+                  >
+                    Spotify Library
+                  </button>
+                  <button
+                    onClick={() => dashboard.setActiveTab("youtube")}
+                    className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+                      dashboard.activeTab === "youtube"
+                        ? "bg-zinc-900 text-white"
+                        : "text-zinc-700 hover:bg-zinc-100"
+                    }`}
+                  >
+                    YouTube to MP3
+                  </button>
+                </div>
+
+                <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-3">
                     {sessionData.user.image && (
-                      <div className="relative">
+                      <div>
                         <Image
                           src={sessionData.user.image}
                           alt="Profile"
                           width={40}
                           height={40}
-                          className="rounded-full shadow-lg ring-2 ring-white/20"
+                          className="rounded-full border border-zinc-300"
                         />
-                        <div className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full bg-emerald-400"></div>
                       </div>
                     )}
                     <div className="hidden sm:block">
-                      <span className="text-sm font-medium text-white">
+                      <span className="text-sm font-medium text-zinc-900">
                         {sessionData.user.name}
                       </span>
-                      <div className="text-xs text-gray-400">Connected</div>
                     </div>
                   </div>
                   <button
                     onClick={() => void signOut()}
-                    className="rounded-xl px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
+                    className="rounded-md border border-zinc-300 bg-white px-2.5 py-1 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
                   >
                     Sign out
                   </button>
@@ -78,50 +96,27 @@ export default function Home() {
           </header>
 
           {/* Main Content */}
-          <main className="relative mx-auto max-w-7xl px-6 py-12 lg:px-8">
-            <div className="space-y-16">
-              {/* Tabs */}
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => dashboard.setActiveTab("spotify")}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                    dashboard.activeTab === "spotify"
-                      ? "bg-white/15 text-white ring-2 ring-purple-400/70"
-                      : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  Spotify Library
-                </button>
-                <button
-                  onClick={() => dashboard.setActiveTab("youtube")}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                    dashboard.activeTab === "youtube"
-                      ? "bg-white/15 text-white ring-2 ring-purple-400/70"
-                      : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  YouTube to MP3
-                </button>
-              </div>
+          <main className="relative mx-auto h-[calc(100vh-3.5rem)] max-w-7xl overflow-hidden px-6 py-4 lg:px-8">
+            <div className="flex h-full min-h-0 flex-col gap-4">
 
               {/* Selected Collection Tracks */}
               {dashboard.activeTab === "spotify" &&
                 dashboard.selectedCollectionId &&
                 dashboard.collectionsData && (
-                  <section className="animate-fade-in space-y-8">
-                    <div className="flex items-center justify-between">
+                  <section className="animate-fade-in flex h-full min-h-0 flex-col gap-4">
+                    <div className="flex items-center justify-between gap-3">
                       <div className="flex items-baseline gap-4">
-                        <h2 className="text-3xl font-light tracking-tight text-white">
+                        <h2 className="text-2xl font-semibold tracking-tight text-zinc-950">
                           {selectedCollection?.name ?? "Collection"}
                         </h2>
-                        <span className="text-sm text-gray-400">
+                        <span className="text-sm text-zinc-500">
                           {dashboard.totalTracks}{" "}
                           {dashboard.totalTracks === 1 ? "track" : "tracks"}
                         </span>
                       </div>
                       <button
                         onClick={() => dashboard.handleCollectionSelect(null)}
-                        className="inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900 focus:outline-none"
+                        className="inline-flex items-center rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus:ring-2 focus:ring-zinc-900 focus:outline-none"
                       >
                         <svg
                           className="mr-2 h-4 w-4"
@@ -140,19 +135,21 @@ export default function Home() {
                       </button>
                     </div>
                     {selectedCollection ? (
-                      <TrackMatcher
-                        collection={selectedCollection}
-                        tracks={dashboard.tracks}
-                        isLoading={dashboard.isInitialLoading}
-                        isPaginating={dashboard.isPaginating}
-                        showHeader={false}
-                        currentPage={dashboard.tracksPage}
-                        totalItems={dashboard.totalTracks}
-                        itemsPerPage={dashboard.tracksPerPage}
-                        onPageChange={dashboard.setTracksPage}
-                      />
+                      <div className="min-h-0 flex-1">
+                        <TrackMatcher
+                          collection={selectedCollection}
+                          tracks={dashboard.tracks}
+                          isLoading={dashboard.isInitialLoading}
+                          isPaginating={dashboard.isPaginating}
+                          showHeader={false}
+                          currentPage={dashboard.tracksPage}
+                          totalItems={dashboard.totalTracks}
+                          itemsPerPage={dashboard.tracksPerPage}
+                          onPageChange={dashboard.setTracksPage}
+                        />
+                      </div>
                     ) : (
-                      <div className="glass rounded-2xl border border-white/20 p-6 text-sm text-gray-300">
+                      <div className="rounded-xl border border-zinc-300 bg-white p-6 text-sm text-zinc-700">
                         The selected collection is no longer available. Please
                         go back and choose another collection.
                       </div>
@@ -163,7 +160,7 @@ export default function Home() {
               {/* Collections List */}
               {dashboard.activeTab === "spotify" &&
                 !dashboard.selectedCollectionId && (
-                  <section className="animate-fade-in space-y-8">
+                  <section className="animate-fade-in h-full min-h-0 overflow-y-auto pr-1">
                     <CollectionList
                       collections={dashboard.collectionsData?.collections ?? []}
                       onCollectionClick={dashboard.handleCollectionSelect}
@@ -176,7 +173,11 @@ export default function Home() {
                   </section>
                 )}
 
-              {dashboard.activeTab === "youtube" && <YouTubeMp3 />}
+              {dashboard.activeTab === "youtube" && (
+                <div className="h-full min-h-0">
+                  <YouTubeMp3 />
+                </div>
+              )}
             </div>
           </main>
         </div>

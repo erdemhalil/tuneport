@@ -40,6 +40,26 @@ body {
   background: #a8a8a1;
 }
 
+/* Use browser-native scrollbars in the Music Collections list panel */
+.collections-native-scrollbar::-webkit-scrollbar {
+  width: auto;
+  height: auto;
+}
+
+.collections-native-scrollbar::-webkit-scrollbar-track {
+  background: initial;
+}
+
+.collections-native-scrollbar::-webkit-scrollbar-thumb {
+  background: initial;
+  border: 0;
+  border-radius: 0;
+}
+
+.collections-native-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: initial;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

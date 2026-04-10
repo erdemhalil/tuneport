@@ -35,15 +35,3 @@ USER nextjs
 EXPOSE 3000
 
 CMD ["node", "server.js"]
-
-FROM base AS dev
-ENV NODE_ENV=development
-ENV NEXT_TELEMETRY_DISABLED=1
-
-RUN apk add --no-cache ffmpeg yt-dlp libc6-compat
-
-COPY package.json package-lock.json ./
-RUN npm ci
-
-EXPOSE 3000
-CMD ["npm", "run", "dev"]

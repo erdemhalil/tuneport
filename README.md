@@ -29,7 +29,7 @@ Tuneport helps you move from streaming to ownership: sign in with Spotify, selec
 
 For local Spotify auth, add this callback URL in your Spotify app settings:
 
-- `http://localhost:3000/api/auth/callback/spotify`
+- `http://127.0.0.1:3000/api/auth/callback/spotify`
 
 ## Quick Start (Docker Compose)
 
@@ -41,7 +41,7 @@ For local Spotify auth, add this callback URL in your Spotify app settings:
 
 2. Fill in `.env` values:
    - `AUTH_SECRET` (generate with `npx auth secret`)
-   - `NEXTAUTH_URL` (use `http://localhost:3000` for local Docker runs)
+   - `NEXTAUTH_URL` (use `http://127.0.0.1:3000` for local Docker runs)
    - `SPOTIFY_CLIENT_ID`
    - `SPOTIFY_CLIENT_SECRET`
    - `YOUTUBE_API_KEY`
@@ -53,7 +53,7 @@ For local Spotify auth, add this callback URL in your Spotify app settings:
    docker compose up -d --build
    ```
 
-4. Open http://localhost:3000
+4. Open http://127.0.0.1:3000
 
 5. Stop services:
 
@@ -78,7 +78,7 @@ Extra requirements:
    npm install
    ```
 
-2. Configure `.env` (`NEXTAUTH_URL=http://localhost:3000`, `REDIS_HOST=localhost`, `REDIS_PORT=6379`)
+2. Configure `.env` (`NEXTAUTH_URL=http://127.0.0.1:3000`, `REDIS_HOST=localhost`, `REDIS_PORT=6379`)
 
 3. Start Redis (example):
 
@@ -92,7 +92,7 @@ Extra requirements:
    npm run dev
    ```
 
-5. Open http://localhost:3000
+5. Open http://127.0.0.1:3000
 
 ## Scripts
 

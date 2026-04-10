@@ -23,14 +23,66 @@ Tuneport helps you move from streaming to ownership: sign in with Spotify, selec
 
 ## Requirements
 
+- [Docker](https://docs.docker.com/engine/install/)
+- [Spotify app credentials](https://developer.spotify.com/dashboard)
+- [YouTube Data API key](https://developers.google.com/youtube/registering_an_application)
+
+For local Spotify auth, add this callback URL in your Spotify app settings:
+
+- `http://localhost:3000/api/auth/callback/spotify`
+
+## Quick Start (Docker Compose)
+
+1. Create your env file from `.env.example`:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Fill in `.env` values:
+   - `AUTH_SECRET` (generate with `npx auth secret`)
+   - `NEXTAUTH_URL` (use `http://localhost:3000` for local Docker runs)
+   - `SPOTIFY_CLIENT_ID`
+   - `SPOTIFY_CLIENT_SECRET`
+   - `YOUTUBE_API_KEY`
+   - `REDIS_PASSWORD` (optional)
+
+3. Start app + Redis:
+
+   ```bash
+   docker compose up -d --build
+   ```
+
+4. Open http://localhost:3000
+
+5. Stop services:
+
+   ```bash
+   docker compose down
+   ```
+
+### Development Profile (hot reload)
+
+```bash
+docker compose --profile dev up -d --build app-dev redis
+```
+
+Stop dev profile:
+
+```bash
+docker compose --profile dev down
+```
+
+## Optional: Run without Docker
+
+Use this only if you do not want a Docker-based workflow.
+
+Extra requirements:
+
 - [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 - [Redis](https://hub.docker.com/_/redis)
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation) available in PATH
 - [FFmpeg](https://www.ffmpeg.org/download.html) available in PATH
-- [Spotify app credentials](https://developer.spotify.com/dashboard)
-- [YouTube Data API key](https://developers.google.com/youtube/registering_an_application)
-
-## Setup
 
 1. Install dependencies:
 
@@ -38,16 +90,9 @@ Tuneport helps you move from streaming to ownership: sign in with Spotify, selec
    npm install
    ```
 
-2. Create your local env file from `.env.example` and fill in values:
-   - `AUTH_SECRET` (generate with `npx auth secret`)
-   - `SPOTIFY_CLIENT_ID`
-   - `SPOTIFY_CLIENT_SECRET`
-   - `YOUTUBE_API_KEY`
-   - `REDIS_HOST`
-   - `REDIS_PORT`
-   - `REDIS_PASSWORD` (optional)
+2. Configure `.env` (`NEXTAUTH_URL=http://localhost:3000`, `REDIS_HOST=localhost`, `REDIS_PORT=6379`)
 
-3. Start Redis (example with Docker):
+3. Start Redis (example):
 
    ```bash
    docker run -d -p 6379:6379 redis:alpine

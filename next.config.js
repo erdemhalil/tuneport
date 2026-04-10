@@ -6,6 +6,7 @@ import "./src/env.ts";
 
 /** @type {import("next").NextConfig} */
 const config = {
+  output: "standalone",
   reactStrictMode: true,
 
   images: {

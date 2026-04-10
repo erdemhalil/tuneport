@@ -61,21 +61,9 @@ For local Spotify auth, add this callback URL in your Spotify app settings:
    docker compose down
    ```
 
-### Development Profile (hot reload)
+## Optional: Local development without Docker
 
-```bash
-docker compose --profile dev up -d --build app-dev redis
-```
-
-Stop dev profile:
-
-```bash
-docker compose --profile dev down
-```
-
-## Optional: Run without Docker
-
-Use this only if you do not want a Docker-based workflow.
+Use this if you want to run with `npm` directly.
 
 Extra requirements:
 
